@@ -1,9 +1,16 @@
 package lottery;
 
+import static java.lang.System.*;
+
+import parameters.ParametersReader;
+import parameters.ParametersUpdater;
+
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		ParametersUpdater parametersUpdater = new ParametersReader(args);
+		// TODO 
+		
 
 	}
 
