@@ -1,7 +1,8 @@
-package settings;
+package parameters;
 
-import parameters.BitcoinLotterySettings;
 import parameters.Parameters.Command;
+import settings.BitcoinLotterySettings;
+
 
 public class CommandParser {
 

@@ -1,7 +1,6 @@
 package parameters;
 
-import settings.CommandParser;
-import settings.CommandParser.CommandArg;
+import parameters.CommandParser.CommandArg;
 
 public abstract class ParametersUpdater {
 	protected Parameters parameters;
