@@ -1,7 +1,9 @@
 package lottery;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+
+import parameters.Parameters;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
@@ -65,14 +67,16 @@ public class NotifierText extends Notifier {
 	}
 
 	@Override
-	public void showKey(String root, String subdir, String session, ECKey key, boolean testnet) {
+	public void showKey(Parameters parameters, String session, ECKey key) throws IOException {
 		//TODO
-		String dir = new File(new File(root, subdir), session).getPath();
+		String subdir = BitcoinLotterySettings.keySubdirectory;
+		boolean testnet = parameters.isTestnet();
+		String dir = Utils.getDir(parameters.getRoot(), subdir, session, testnet).getAbsolutePath();
 		NetworkParameters params = testnet ? TestNet3Params.get() : MainNetParams.get();
 		System.out.println("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
 		System.out.println("They were saved under the " + dir + " directory");
 		System.out.println("The public key and the private key are:");
-		System.out.println(key.getPrivateKeyEncoded(params));
 		System.out.println(key.toAddress(params));
+		System.out.println(key.getPrivateKeyEncoded(params));
 	}
 }

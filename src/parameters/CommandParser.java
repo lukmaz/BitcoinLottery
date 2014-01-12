@@ -1,5 +1,7 @@
 package parameters;
 
+import java.io.File;
+
 import parameters.Parameters.Command;
 import settings.BitcoinLotterySettings;
 
@@ -19,7 +21,7 @@ public class CommandParser {
 	}
 	
 	public static CommandArg parse(String[] args) {
-		String root = BitcoinLotterySettings.defaultDir;
+		String root = new File(System.getProperty("user.home"), BitcoinLotterySettings.defaultDir).getAbsolutePath();
 		boolean testnet = false;
 		CommandArg defaultCommand = new CommandArg(Command.HELP, root, testnet); 
 		if (args.length < 1 || args.length > 3) {

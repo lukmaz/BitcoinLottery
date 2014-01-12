@@ -16,9 +16,9 @@ public class BitcoinLotterySettings {
 	public static final String argClaimMoney = "claim";
 	public static final String argLottery = "lottery";
 	
-	public static final String defaultDir = "~/.bitcoinlottery/";
+	public static final String defaultDir = ".bitcoinlottery";
+	public static final String testnetSubdirectory = "testnet";
 	public static final String keySubdirectory = "keys";
-	
-	
-	
+	public static final String skFilename = "bitcoinkey";
+	public static final String pkFilename = "bitcoinkey.pub";
 }

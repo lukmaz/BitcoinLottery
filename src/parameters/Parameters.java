@@ -10,7 +10,7 @@ public class Parameters {
 	}
 	
 	protected Command command;
-	protected String dir;
+	protected String root;
 	protected boolean testnet;
 	
 	public Command getCommand() {
@@ -19,12 +19,12 @@ public class Parameters {
 	public void setCommand(Command command) {
 		this.command = command;
 	}
-	public String getDir() {
-		return dir;
+	public String getRoot() {
+		return root;
 	}
-	public void setDir(String dir) {
+	public void setRoot(String dir) {
 		// TODO: check if it's a directory (?)
-		this.dir = dir;
+		this.root = dir;
 	}
 	public void setTestnet(boolean testnet) {
 		this.testnet = testnet;
