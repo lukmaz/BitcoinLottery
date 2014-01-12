@@ -7,5 +7,5 @@ public abstract class Notifier {
 	
 	public abstract void showVersion();
 
-	public abstract void showKey(String root, String subdir, String session, ECKey key);
+	public abstract void showKey(String root, String subdir, String session, ECKey key, boolean testnet);
 }

@@ -11,6 +11,7 @@ public class Parameters {
 	
 	protected Command command;
 	protected String dir;
+	protected boolean testnet;
 	
 	public Command getCommand() {
 		return command;
@@ -24,5 +25,11 @@ public class Parameters {
 	public void setDir(String dir) {
 		// TODO: check if it's a directory (?)
 		this.dir = dir;
+	}
+	public void setTestnet(boolean testnet) {
+		this.testnet = testnet;
+	}
+	public boolean isTestnet() {
+		return testnet;
 	}
 }

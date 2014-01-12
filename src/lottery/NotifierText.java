@@ -6,6 +6,7 @@ import java.util.Arrays;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.params.MainNetParams;
+import com.google.bitcoin.params.TestNet3Params;
 
 import settings.BitcoinLotterySettings;
 
@@ -23,16 +24,20 @@ public class NotifierText extends Notifier {
 				 .append(BitcoinLotterySettings.argLottery);
 		System.out.println("BitcoinLottery " + BitcoinLotterySettings.version + ". Usage:\n" +
 							"bitcoinlottery {" + arguments + "}" + 
-							" [" + BitcoinLotterySettings.argDirPrefix + "path]");
+							" [" + BitcoinLotterySettings.argDirPrefix + "<path>]" +
+							" [" + BitcoinLotterySettings.argTestnet + "]");
 		printArgDetails(BitcoinLotterySettings.argHelp,       "prints this help");
 		printArgDetails(BitcoinLotterySettings.argVersion,    "prints version and general information");
 		printArgDetails(BitcoinLotterySettings.argGen,        "generates fresh pair <public key, secret key>");
 		printArgDetails(BitcoinLotterySettings.argClaimMoney, "returns the transaction ClaimMoney when provided "
 																+ "transaction Compute and secrets s_i");
 		printArgDetails(BitcoinLotterySettings.argLottery,    "generates the transactions to perform the lottery");
-		System.out.println("Every value (e.g. keys, transactions) generated or received by the program " +
-							"is stored by default under the " + BitcoinLotterySettings.defaultDir + " location.");
-		System.out.println("This can be changed by using the option " + BitcoinLotterySettings.argDirPrefix);
+		printArgDetails(BitcoinLotterySettings.argDirPrefix + "<path>",
+				"Every value (e.g. keys, transactions) generated or received by the program " +
+				"is stored under the <path> location (by default it is " + BitcoinLotterySettings.defaultDir);
+		printArgDetails(BitcoinLotterySettings.argTestnet,
+				"use this option to use the testnet network instead of the main Bitcoin chain");
+
 	}
 	
 	protected void printArgDetails(String arg, String details) {
@@ -60,13 +65,13 @@ public class NotifierText extends Notifier {
 	}
 
 	@Override
-	public void showKey(String root, String subdir, String session, ECKey key) {
+	public void showKey(String root, String subdir, String session, ECKey key, boolean testnet) {
 		//TODO
 		String dir = new File(new File(root, subdir), session).getPath();
-		System.out.println("Generated new <public key, secret key> pair.");
+		NetworkParameters params = testnet ? TestNet3Params.get() : MainNetParams.get();
+		System.out.println("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
 		System.out.println("They were saved under the " + dir + " directory");
 		System.out.println("The public key and the private key are:");
-		NetworkParameters params = MainNetParams.get();
 		System.out.println(key.getPrivateKeyEncoded(params));
 		System.out.println(key.toAddress(params));
 	}

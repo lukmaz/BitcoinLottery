@@ -7,8 +7,9 @@ public class BitcoinLotterySettings {
 	public static final String email = "--"; //TODO
 	public static final String homepage = "--"; //TODO
 	public static final String paper = "http://eprint.iacr.org/2013/784.pdf";
-	
+
 	public static final String argDirPrefix = "--dir=";
+	public static final String argTestnet = "--testnet";
 	public static final String argHelp = "help";
 	public static final String argVersion = "version";
 	public static final String argGen = "gen";

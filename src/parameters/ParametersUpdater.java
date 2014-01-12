@@ -10,6 +10,7 @@ public abstract class ParametersUpdater {
 		CommandArg commandArg = CommandParser.parse(args);
 		parameters.setDir(commandArg.dir);
 		parameters.setCommand(commandArg.command);
+		parameters.setTestnet(commandArg.testnet);
 	}
 
 	public Parameters getParameters() {

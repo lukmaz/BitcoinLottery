@@ -63,8 +63,9 @@ public class Controller {
 		String root = parametersUpdater.getParameters().getDir();
 		String subdir = BitcoinLotterySettings.keySubdirectory;
 		ECKey key = new KeyGenerator().generate();
-		memoryStorage.saveKey(root, subdir, session, key);
-		notifier.showKey(root, subdir, session, key);
+		boolean testnet = parametersUpdater.getParameters().isTestnet();
+		memoryStorage.saveKey(root, subdir, session, key, testnet);
+		notifier.showKey(root, subdir, session, key, testnet);
 	}
 
 	protected void showHelp() {
