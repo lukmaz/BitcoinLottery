@@ -22,6 +22,7 @@ public class Parameters {
 		return dir;
 	}
 	public void setDir(String dir) {
+		// TODO: check if it's a directory (?)
 		this.dir = dir;
 	}
 }

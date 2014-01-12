@@ -1,6 +1,11 @@
 package lottery;
 
+import java.io.File;
 import java.util.Arrays;
+
+import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.NetworkParameters;
+import com.google.bitcoin.params.MainNetParams;
 
 import settings.BitcoinLotterySettings;
 
@@ -54,4 +59,15 @@ public class NotifierText extends Notifier {
 							"This application comes with no warranty");
 	}
 
+	@Override
+	public void showKey(String root, String subdir, String session, ECKey key) {
+		//TODO
+		String dir = new File(new File(root, subdir), session).getPath();
+		System.out.println("Generated new <public key, secret key> pair.");
+		System.out.println("They were saved under the " + dir + " directory");
+		System.out.println("The public key and the private key are:");
+		NetworkParameters params = MainNetParams.get();
+		System.out.println(key.getPrivateKeyEncoded(params));
+		System.out.println(key.toAddress(params));
+	}
 }

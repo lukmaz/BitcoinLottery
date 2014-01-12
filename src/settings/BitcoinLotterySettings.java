@@ -16,6 +16,8 @@ public class BitcoinLotterySettings {
 	public static final String argLottery = "lottery";
 	
 	public static final String defaultDir = "~/.bitcoinlottery/";
+	public static final String keySubdirectory = "keys";
+	
 	
 	
 }

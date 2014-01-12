@@ -1,25 +1,47 @@
 package lottery;
 
+import java.util.Date;
+
+import logic.KeyGenerator;
+
+import com.google.bitcoin.core.ECKey;
+
+import parameters.MemoryStorage;
 import parameters.ParametersUpdater;
+import settings.BitcoinLotterySettings;
 
 public class Controller {
 
-	public void run(ParametersUpdater parametersUpdater, Notifier notifier) {
+	protected ParametersUpdater parametersUpdater;
+	protected MemoryStorage memoryStorage;
+	protected Notifier notifier;
+	protected String session;
+		
+	public Controller(ParametersUpdater parametersUpdater,
+			MemoryStorage memoryStorage, Notifier notifier) {
+		Long lDateTime = new Date().getTime();
+		this.parametersUpdater = parametersUpdater;
+		this.memoryStorage = memoryStorage;
+		this.notifier = notifier;
+		this.session = lDateTime.toString(); 
+	}
+
+	public void run() {
 		switch (parametersUpdater.getParameters().getCommand()) {
 			case VERSION:
-				showVersion(notifier);
+				showVersion();
 				break;
 			case HELP:
-				showHelp(notifier);
+				showHelp();
 				break;
 			case GENERATE_KEYS:
-				generateKeys(parametersUpdater);
+				generateKeys();
 				break;
 			case CLAIM_MONEY:
-				claimMoney(parametersUpdater);
+				claimMoney();
 				break;
 			case LOTTERY:
-				lottery(parametersUpdater);
+				lottery();
 				break;
 			default:
 				throw new RuntimeException("BitcoinLottery: Illegal command.");
@@ -27,27 +49,31 @@ public class Controller {
 		
 	}
 
-	private void claimMoney(ParametersUpdater parametersUpdater) {
+	protected void claimMoney() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void lottery(ParametersUpdater parametersUpdater) {
+	protected void lottery() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void generateKeys(ParametersUpdater parametersUpdater) {
-		// TODO Auto-generated method stub
-		
+	protected void generateKeys() {
+		String root = parametersUpdater.getParameters().getDir();
+		String subdir = BitcoinLotterySettings.keySubdirectory;
+		ECKey key = new KeyGenerator().generate();
+		memoryStorage.saveKey(root, subdir, session, key);
+		notifier.showKey(root, subdir, session, key);
 	}
 
-	private void showHelp(Notifier notifier) {
+	protected void showHelp() {
 		notifier.showHelp();
 	}
 
-	private void showVersion(Notifier notifier) {
+	protected void showVersion() {
 		notifier.showVersion();
 	}
 
+	
 }
