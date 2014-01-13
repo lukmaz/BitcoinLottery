@@ -3,6 +3,9 @@ package logic;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -16,8 +19,6 @@ import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.VerificationException;
-import com.google.bitcoin.params.MainNetParams;
-import com.google.bitcoin.params.TestNet3Params;
 import com.google.bitcoin.script.Script;
 import com.google.bitcoin.script.ScriptChunk;
 import com.google.bitcoin.script.ScriptOpCodes;
@@ -27,15 +28,15 @@ public class ComputeTx extends LotteryTx {
 	protected boolean complete = false;
 	protected int minLength;
 		
-	public ComputeTx(List<PutMoneyTx> inputs, List<String> hashes, int minLength, BigInteger fee) {
+	public ComputeTx(List<PutMoneyTx> inputs, List<byte[]> hashes, int minLength, BigInteger fee, boolean testnet) {
 		//TODO: create !!!
 		complete = false;
 		throw new NotImplementedException();
 	}
 	
-	public ComputeTx(String txString, boolean testnet) throws ProtocolException, VerificationException {
-		NetworkParameters params = testnet ? TestNet3Params.get() : MainNetParams.get();
-		tx = new Transaction(params, Utils.parseAsHexOrBase58(txString));
+	public ComputeTx(byte[] rawTx, boolean testnet) throws ProtocolException, VerificationException {
+		NetworkParameters params = getNetworkParameters(testnet);
+		tx = new Transaction(params, rawTx);
 		validateIsCompute();
 		computeSecretsHashes();
 		computeMinLength();
@@ -74,12 +75,8 @@ public class ComputeTx extends LotteryTx {
 		return tx.getInputs().size();
 	}
 	
-	public List<String> getSecretsHashes() throws ScriptException {
-		List<String> hashStrings = new LinkedList<String>();
-		for (byte[] hash : hashes) {
-			hashStrings.add(Utils.bytesToHexString(hash));
-		}
-		return hashStrings;
+	public List<byte[]> getSecretsHashes() {
+		return new LinkedList<byte[]> (hashes);
 	}
 
 	protected void computeSecretsHashes() throws ScriptException {
@@ -106,34 +103,40 @@ public class ComputeTx extends LotteryTx {
 		}
 	}
 
-	public boolean checkSecrets(List<String> secrets) {
+	public Collection<Integer> findBadSecrets(List<byte[]> secrets) {
 		if (hashes == null || secrets == null || hashes.size() != secrets.size()) {
-			return false;
+			return null;
 		}
+		Collection<Integer> errors = new HashSet<Integer>();
 		
 		for (int n = 0; n < secrets.size(); ++n) {
 			byte[] sha256 = null;
 			try {
-				sha256 = MessageDigest.getInstance("SHA-256").digest(Utils.parseAsHexOrBase58(secrets.get(n)));
+				sha256 = MessageDigest.getInstance("SHA-256").digest(secrets.get(n));
 			} catch (NoSuchAlgorithmException e) {
 				// TODO
 				e.printStackTrace();
 			}
-			if (!Utils.bytesToHexString(sha256).equals(Utils.bytesToHexString(hashes.get(n)))) {
-				return false;
+			if (!Arrays.equals(sha256, hashes.get(n))) { //TODO!!! or length is not in [min, min+n)
+				errors.add(n);
 			}
 		}
 		
-		return true;
+		return errors;
+	}
+	
+	public boolean checkSecrets(List<byte[]> secrets) {
+		Collection<Integer> errors = findBadSecrets(secrets);
+		return errors != null && errors.size() == 0;
 	}
 
-	public int getWinner(List<String> secrets) throws VerificationException {
+	public int getWinner(List<byte[]> secrets) throws VerificationException {
 		if (!checkSecrets(secrets)) {
 			throw new VerificationException("Wrong secrets");
 		}
 		int winner = 0;
-		for (String secret : secrets) {
-			winner += secret.length()/2 - minLength;
+		for (byte[] secret : secrets) {
+			winner += secret.length - minLength;
 		}
 		//TODO is it working? !!!
 		winner = (winner % getNoPlayers()) + 1;

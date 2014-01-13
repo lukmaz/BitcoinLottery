@@ -96,7 +96,7 @@ public class MemoryDumper extends MemoryStorage {
 
 	@Override
 	public void saveSecrets(Parameters parameters, String session,
-			List<String> secrets) throws IOException {
+			List<byte[]> secrets) throws IOException {
 		String subdir = getSubdir(parameters.getCommand());
 		String chain = chainName(parameters.isTestnet());
 		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
@@ -104,8 +104,8 @@ public class MemoryDumper extends MemoryStorage {
 		File secretsFile = new File(dir, BitcoinLotterySettings.secretsFilename);
 		
 		PrintWriter writer = new PrintWriter(secretsFile.getAbsolutePath());
-		for (String s : secrets) {
-			writer.println(s);
+		for (byte[] s : secrets) {
+			writer.println(Utils.bytesToHexString(s));
 		}
 		writer.close();
 	}

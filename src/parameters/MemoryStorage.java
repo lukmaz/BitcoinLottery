@@ -13,5 +13,5 @@ public abstract class MemoryStorage {
 
 	public abstract void saveTransaction(Parameters parameters, String session, LotteryTx tx) throws IOException;
 
-	public abstract void saveSecrets(Parameters parameters, String session, List<String> secrets) throws IOException ;
+	public abstract void saveSecrets(Parameters parameters, String session, List<byte[]> secrets) throws IOException ;
 }

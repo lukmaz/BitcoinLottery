@@ -1,14 +1,18 @@
 package lottery;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
+import logic.ClaimTx;
+import logic.LotteryTx;
 import parameters.Parameters;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
-import com.google.bitcoin.params.MainNetParams;
-import com.google.bitcoin.params.TestNet3Params;
+import com.google.bitcoin.core.Utils;
 
 import settings.BitcoinLotterySettings;
 
@@ -66,19 +70,59 @@ public class NotifierText extends Notifier {
 							"This application comes with no warranty");
 	}
 
+	protected String getDir(String subdir, Parameters parameters, String session) throws IOException {
+		String chain = parameters.isTestnet() ? BitcoinLotterySettings.testnetSubdirectory : "";
+		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		return LotteryUtils.getDir(pathParts).getAbsolutePath();
+	}
+	
 	@Override
 	public void showKey(Parameters parameters, String session, ECKey key) throws IOException {
 		//TODO
-		String subdir = BitcoinLotterySettings.keySubdirectory;
-		boolean testnet = parameters.isTestnet();
-		String chain = parameters.isTestnet() ? BitcoinLotterySettings.testnetSubdirectory : "";
-		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
-		String dir = LotteryUtils.getDir(pathParts).getAbsolutePath();
-		NetworkParameters params = testnet ? TestNet3Params.get() : MainNetParams.get();
-		System.out.println("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
+		String dir = getDir(BitcoinLotterySettings.keySubdirectory, parameters, session);
+		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
+		System.out.println("Generated new <public key, secret key> pair" + (parameters.isTestnet() ? " (for the testnet)" : ""));			
 		System.out.println("They were saved under the " + dir + " directory");
 		System.out.println("The public key and the private key are:");
 		System.out.println(key.toAddress(params));
 		System.out.println(key.getPrivateKeyEncoded(params));
+	}
+
+	@Override
+	public void showWinner(int winner) {
+		//TODO
+		//TODO: show winners pk
+		System.out.println("The winner is the player number " + winner);		
+		System.out.println("    (numerating starts with 1).");		
+		System.out.println("If you are the winner press enter to continue.");		
+		System.out.println("Otherwise press Ctrl+c to exit.");
+		//TODO: wait for enter
+	}
+
+	@Override
+	public void showClaimMoney(Parameters parameters, String session, ClaimTx claimMoneyTx) throws IOException {
+		//TODO
+		String dir = getDir(BitcoinLotterySettings.claimSubdirectory, parameters, session);
+		System.out.println("Congratulation, you are the winner!");
+		System.out.println("The provided Compute transaction, secrets and created ClaimMoney transaction " +
+							"were save under the " + dir + " directory");
+		BigInteger reward = claimMoneyTx.getValue(0);
+		System.out.println("To get your reward (" + Utils.bitcoinValueToFriendlyString(reward) + " BTC), broadcast the transaction:");
+		System.out.println(Utils.bytesToHexString(claimMoneyTx.toRaw()));
+	}
+
+	@Override
+	public void showWrongSecrets(Collection<Integer> collection) {
+		// TODO
+		System.out.println("The secrets you have provided are not correct");
+		System.out.print("The errors are on the positions: ");
+		Iterator<Integer> it = collection.iterator();
+		while (it.hasNext()) {
+			System.out.print(it.next()+1 + " ");
+		}
+		System.out.println();
+		System.out.println("If you want to provide them again, press enter to continue.");		
+		System.out.println("Otherwise press Ctrl+c to exit.");
+		//TODO: wait for enter
 	}
 }

@@ -1,5 +1,9 @@
 package settings;
 
+import java.math.BigInteger;
+
+import com.google.bitcoin.core.Utils;
+
 public class BitcoinLotterySettings {
 
 	public static final String version = "0.0";
@@ -30,4 +34,6 @@ public class BitcoinLotterySettings {
 	public static final String txComputeFilename = "compute.tx";
 	public static final String txClaimMoneyFilename = "claimmoney.tx";
 	public static final String secretsFilename = "secrets.tx";
+	
+	public static BigInteger defaultFee = Utils.toNanoCoins("0.0001");
 }
