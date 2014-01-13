@@ -1,16 +1,19 @@
 package lottery;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
-import logic.ClaimMoneyCreator;
+import logic.ClaimTx;
+import logic.ComputeTx;
 import logic.KeyGenerator;
 
+import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.ProtocolException;
 import com.google.bitcoin.core.ScriptException;
+import com.google.bitcoin.core.VerificationException;
 
 import parameters.MemoryStorage;
 import parameters.Parameters;
@@ -56,42 +59,74 @@ public class Controller {
 	}
 
 	protected void claimMoney() {
+		Parameters parameters = parametersUpdater.getParameters();
 		String txString = null;
 		try {
 			txString = parametersUpdater.askCompute();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// TODO
 			e.printStackTrace();
 		}
-		ClaimMoneyCreator claimMoneyTxCreator = null;
+		ComputeTx computeTx = null;
 		try {
-			claimMoneyTxCreator = new ClaimMoneyCreator(txString, parametersUpdater.getParameters().isTestnet());
+			computeTx = new ComputeTx(txString, parameters.isTestnet());
 		} catch (ProtocolException e) {
-			// TODO Auto-generated catch block
+			// TODO
+			e.printStackTrace();
+		} catch (VerificationException e) {
+			// TODO
 			e.printStackTrace();
 		}
-		//TODO: save tx
+		try {
+			memoryStorage.saveTransaction(parameters, session, computeTx);
+		} catch (IOException e1) {
+			// TODO
+			e1.printStackTrace();
+		}
+
 		List<String> secrets = null;
 		try {
-			secrets = parametersUpdater.askSecrets(claimMoneyTxCreator.getSecretsHashes());
+			secrets = parametersUpdater.askSecrets(computeTx.getSecretsHashes());
 		} catch (ScriptException e) {
-			// TODO Auto-generated catch block
+			// TODO
 			e.printStackTrace();
 		}
-		//TODO: save secrets
-		boolean secretsCorrect = false;
 		try {
-			secretsCorrect = claimMoneyTxCreator.checkSecrets(secrets);
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			memoryStorage.saveSecrets(parameters, session, secrets);
+		} catch (IOException e1) {
+			// TODO
+			e1.printStackTrace();
 		}
+		
+		boolean secretsCorrect = false;
+		secretsCorrect = computeTx.checkSecrets(secrets);
 		if (secretsCorrect) {
+			int winner = 0;
+			try {
+				winner = computeTx.getWinner(secrets);
+			} catch (VerificationException e1) {// can not happen
+				e1.printStackTrace();
+			}
 			//notify who have won
-			//TODO: ask for private key and address (will not be saved)
-			//fee?
-			//compute ClaimMoney
-			//save ClaimMoney
+			//if you are the winner ... otherwies ...
+			//TODO: ask for private key and address (will not be saved) and fee
+			ECKey sk = null;
+			Address address = null;
+			BigInteger fee = new BigInteger("0");
+			ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee);
+			try {
+				claimMoneyTx.addSecrets(secrets);
+				claimMoneyTx.addSignature(winner, sk);
+			} catch (VerificationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			try {
+				memoryStorage.saveTransaction(parameters, session, claimMoneyTx);
+			} catch (IOException e) {
+				// TODO
+				e.printStackTrace();
+			}
 			//print ClaimMoney and summary
 		}
 		else {

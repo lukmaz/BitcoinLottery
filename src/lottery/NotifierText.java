@@ -71,7 +71,9 @@ public class NotifierText extends Notifier {
 		//TODO
 		String subdir = BitcoinLotterySettings.keySubdirectory;
 		boolean testnet = parameters.isTestnet();
-		String dir = Utils.getDir(parameters.getRoot(), subdir, session, testnet).getAbsolutePath();
+		String chain = parameters.isTestnet() ? BitcoinLotterySettings.testnetSubdirectory : "";
+		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		String dir = LotteryUtils.getDir(pathParts).getAbsolutePath();
 		NetworkParameters params = testnet ? TestNet3Params.get() : MainNetParams.get();
 		System.out.println("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
 		System.out.println("They were saved under the " + dir + " directory");

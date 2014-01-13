@@ -19,6 +19,15 @@ public class BitcoinLotterySettings {
 	public static final String defaultDir = ".bitcoinlottery";
 	public static final String testnetSubdirectory = "testnet";
 	public static final String keySubdirectory = "keys";
+	public static final String claimSubdirectory = "claimmoney";
+	public static final String lotterySubdirectory = "lottery";
 	public static final String skFilename = "bitcoinkey";
 	public static final String pkFilename = "bitcoinkey.pub";
+	public static final String txCommitFilename = "commit.tx";
+	public static final String txOpenFilename = "open.tx";
+	public static final String txPayDepositFilename = "paydeposit.tx";
+	public static final String txPutMoneyFilename = "putmoney.tx";
+	public static final String txComputeFilename = "compute.tx";
+	public static final String txClaimMoneyFilename = "claimmoney.tx";
+	public static final String secretsFilename = "secrets.tx";
 }
