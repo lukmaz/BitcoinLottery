@@ -31,6 +31,8 @@ public abstract class ParametersUpdater {
 	}
 
 	public abstract String askCompute() throws IOException;
+	
+	public abstract String askOpen() throws IOException;
 
 	public abstract List<byte[]> askSecrets(List<byte[]> hashes) throws IOException;
 
@@ -39,5 +41,6 @@ public abstract class ParametersUpdater {
 	public abstract Address askAddress(boolean testnet) throws IOException, WrongNetworkException, AddressFormatException;
 
 	public abstract BigInteger askFee() throws IOException;
+
 	
 }

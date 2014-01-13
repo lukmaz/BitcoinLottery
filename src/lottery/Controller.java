@@ -3,11 +3,13 @@ package lottery;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import logic.ClaimTx;
 import logic.ComputeTx;
 import logic.KeyGenerator;
+import logic.OpenTx;
 
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.AddressFormatException;
@@ -50,6 +52,9 @@ public class Controller {
 				break;
 			case CLAIM_MONEY:
 				claimMoney();
+				break;
+			case OPEN:
+				open();
 				break;
 			case LOTTERY:
 				lottery();
@@ -123,6 +128,35 @@ public class Controller {
 					notifier.showWrongSecrets(computeTx.findBadSecrets(secrets));
 				}
 			}
+		} catch (IOException e) {
+			// TODO
+			e.printStackTrace();
+		}
+	}
+
+	protected void open() {
+		Parameters parameters = parametersUpdater.getParameters();
+		String txString = null;
+		try {
+			txString = parametersUpdater.askOpen();
+			OpenTx openTx = null;
+			try {
+				openTx = new OpenTx(Utils.parseAsHexOrBase58(txString), parameters.isTestnet());
+			} catch (ProtocolException e) {
+				// TODO
+				e.printStackTrace();
+			} catch (VerificationException e) {
+				// TODO
+				e.printStackTrace();
+			}
+			
+			memoryStorage.saveTransaction(parameters, session, openTx);
+			byte[] secret = openTx.getSecret();
+			List<byte[]> secrets = new LinkedList<byte[]>();
+			secrets.add(secret);
+			memoryStorage.saveSecrets(parameters, session, secrets);
+			notifier.showSecret(parameters, session, secret);
+			
 		} catch (IOException e) {
 			// TODO
 			e.printStackTrace();

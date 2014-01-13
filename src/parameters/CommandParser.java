@@ -60,6 +60,8 @@ public class CommandParser {
 			return Command.GENERATE_KEYS;
 		if (arg.equals(BitcoinLotterySettings.argClaimMoney))
 			return Command.CLAIM_MONEY;
+		if (arg.equals(BitcoinLotterySettings.argOpen))
+			return Command.OPEN;
 		if (arg.equals(BitcoinLotterySettings.argLottery))
 			return Command.LOTTERY;
 		else

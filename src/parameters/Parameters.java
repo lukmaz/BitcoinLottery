@@ -6,6 +6,7 @@ public class Parameters {
 		VERSION,
 		GENERATE_KEYS,
 		CLAIM_MONEY,
+		OPEN,
 		LOTTERY,
 	}
 	

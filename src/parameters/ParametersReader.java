@@ -32,6 +32,15 @@ public class ParametersReader extends ParametersUpdater {
 		return tx;
 	}
 
+	@Override
+	public String askOpen() throws IOException {
+		BufferedReader reader = getReader();
+		//TODO: merge with askCompute
+		System.out.println("Paste the Open transaction (as a raw tx)");
+		String tx = reader.readLine();
+		return tx;
+	}
+	
 	protected BufferedReader getReader() {
 		InputStreamReader isReader = new InputStreamReader(System.in);
 		BufferedReader bReader = new BufferedReader(isReader);

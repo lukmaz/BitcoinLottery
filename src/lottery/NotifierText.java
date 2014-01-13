@@ -96,7 +96,7 @@ public class NotifierText extends Notifier {
 		System.out.println("    (numerating starts with 1).");		
 		System.out.println("If you are the winner press enter to continue.");		
 		System.out.println("Otherwise press Ctrl+c to exit.");
-		//TODO: wait for enter
+		//TODO: wait for enter ?
 	}
 
 	@Override
@@ -123,6 +123,15 @@ public class NotifierText extends Notifier {
 		System.out.println();
 		System.out.println("If you want to provide them again, press enter to continue.");		
 		System.out.println("Otherwise press Ctrl+c to exit.");
-		//TODO: wait for enter
+		//TODO: wait for enter ?
+	}
+
+	@Override
+	public void showSecret(Parameters parameters, String session, byte[] secret) throws IOException {
+		String dir = getDir(BitcoinLotterySettings.openSubdirectory, parameters, session);
+		System.out.println("The provided Open transaction and its secret " +
+							"were save under the " + dir + " directory");
+		System.out.println("And the secret is:");
+		System.out.println(Utils.bytesToHexString(secret));
 	}
 }

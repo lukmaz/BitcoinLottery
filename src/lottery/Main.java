@@ -14,5 +14,4 @@ public class Main {
 		Controller controller = new Controller(parametersUpdater, memoryStorage, notifier);
 		controller.run();
 	}
-
 }

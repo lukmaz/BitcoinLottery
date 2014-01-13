@@ -20,4 +20,7 @@ public abstract class Notifier {
 	public abstract void showClaimMoney(Parameters parameters, String session, ClaimTx claimMoneyTx)  throws IOException;
 
 	public abstract void showWrongSecrets(Collection<Integer> collection);
+
+	public abstract void showSecret(Parameters parameters, String session, byte[] secret) throws IOException;
+	
 }

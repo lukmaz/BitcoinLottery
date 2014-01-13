@@ -8,16 +8,17 @@ import java.util.List;
 import parameters.Parameters.Command;
 import settings.BitcoinLotterySettings;
 import logic.ClaimTx;
+import logic.CommitTx;
 import logic.ComputeTx;
 import logic.LotteryTx;
+import logic.OpenTx;
+import logic.PayDepositTx;
 import logic.PutMoneyTx;
 import lottery.LotteryUtils;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Utils;
-import com.google.bitcoin.params.MainNetParams;
-import com.google.bitcoin.params.TestNet3Params;
 
 public class MemoryDumper extends MemoryStorage {
 
@@ -29,7 +30,7 @@ public class MemoryDumper extends MemoryStorage {
 		File dir = LotteryUtils.getDir(pathParts);
 		File sk = new File(dir, BitcoinLotterySettings.skFilename);
 		File pk = new File(dir, BitcoinLotterySettings.pkFilename);
-		NetworkParameters params = getNetworkParams(parameters.isTestnet());
+		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
 		
 		PrintWriter skWriter = new PrintWriter(sk.getAbsolutePath());
 		skWriter.println(key.getPrivateKeyEncoded(params));
@@ -38,11 +39,6 @@ public class MemoryDumper extends MemoryStorage {
 		PrintWriter pkWriter = new PrintWriter(pk.getAbsolutePath());
 		pkWriter.println(key.toAddress(params));
 		pkWriter.close();
-	}
-
-	protected NetworkParameters getNetworkParams(boolean testnet) {
-		//TODO: move to Parameters?
-		return testnet ? TestNet3Params.get() : MainNetParams.get();
 	}
 
 	@Override
@@ -69,6 +65,8 @@ public class MemoryDumper extends MemoryStorage {
 		switch (command) {
 			case CLAIM_MONEY:
 				return BitcoinLotterySettings.claimSubdirectory;
+			case OPEN:
+				return BitcoinLotterySettings.openSubdirectory;
 			case LOTTERY:
 				return BitcoinLotterySettings.lotterySubdirectory;
 			default:
@@ -77,17 +75,16 @@ public class MemoryDumper extends MemoryStorage {
 	}
 
 	protected String getTxFilename(Class<?> lotteryClass) {
-		//TODO
 		if (lotteryClass == ClaimTx.class)
 			return BitcoinLotterySettings.txClaimMoneyFilename;
-//		else if (lotteryClass == .class)
-//			return BitcoinLotterySettings.txCommitFilename;
+		else if (lotteryClass == CommitTx.class)
+			return BitcoinLotterySettings.txCommitFilename;
 		else if (lotteryClass == ComputeTx.class)
 			return BitcoinLotterySettings.txComputeFilename;
-//		else if (lotteryClass == .class)
-//			return BitcoinLotterySettings.txOpenFilename;
-//		else if (lotteryClass == .class)
-//			return BitcoinLotterySettings.txPayDepositFilename;
+		else if (lotteryClass == OpenTx.class)
+			return BitcoinLotterySettings.txOpenFilename;
+		else if (lotteryClass == PayDepositTx.class)
+			return BitcoinLotterySettings.txPayDepositFilename;
 		else if (lotteryClass == PutMoneyTx.class)
 			return BitcoinLotterySettings.txPutMoneyFilename;
 		else

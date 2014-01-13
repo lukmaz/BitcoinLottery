@@ -18,12 +18,14 @@ public class BitcoinLotterySettings {
 	public static final String argVersion = "version";
 	public static final String argGen = "gen";
 	public static final String argClaimMoney = "claim";
+	public static final String argOpen = "open";
 	public static final String argLottery = "lottery";
 	
 	public static final String defaultDir = ".bitcoinlottery";
 	public static final String testnetSubdirectory = "testnet";
 	public static final String keySubdirectory = "keys";
 	public static final String claimSubdirectory = "claimmoney";
+	public static final String openSubdirectory = "open";
 	public static final String lotterySubdirectory = "lottery";
 	public static final String skFilename = "bitcoinkey";
 	public static final String pkFilename = "bitcoinkey.pub";
@@ -36,4 +38,5 @@ public class BitcoinLotterySettings {
 	public static final String secretsFilename = "secrets.tx";
 	
 	public static BigInteger defaultFee = Utils.toNanoCoins("0.0001");
+	
 }
