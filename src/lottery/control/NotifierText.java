@@ -12,7 +12,6 @@ import lottery.parameters.Parameters;
 import lottery.parameters.Parameters.Command;
 import lottery.settings.BitcoinLotterySettings;
 import lottery.transaction.ClaimTx;
-import lottery.transaction.CommitTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
@@ -155,7 +154,7 @@ public class NotifierText extends Notifier {
 	}
 
 	@Override
-	public void showCommitmentScheme(Parameters parameters, String session, CommitTx commitTx,
+	public void showCommitmentScheme(Parameters parameters, String session, LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException {
 		//TODO
 		String dir = getDir(BitcoinLotterySettings.lotterySubdirectory, parameters, session);

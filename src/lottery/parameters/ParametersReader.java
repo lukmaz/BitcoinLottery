@@ -196,7 +196,7 @@ public class ParametersReader extends ParametersUpdater {
 		BufferedReader reader = getReader();
 		System.out.println("Every party using the protocol should set the same protocol start timestamp.");
 		System.out.println("To use rounded value of actual time (" + defaultTime + ") press enter.");
-		System.out.println("Otherwise enter the same timestamp as other users (as unix timestamp).");
+		System.out.println("Otherwise enter the same timestamp as other users (as unix timestamp in seconds).");
 		String line = reader.readLine();
 		if (!line.equals("")) {
 			defaultTime = Long.parseLong(line);

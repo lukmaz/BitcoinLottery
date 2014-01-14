@@ -6,7 +6,7 @@ import java.util.List;
 
 import lottery.parameters.Parameters;
 import lottery.transaction.ClaimTx;
-import lottery.transaction.CommitTx;
+import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
 
@@ -29,7 +29,7 @@ public abstract class Notifier {
 
 	public abstract void showHash(byte[] hash) throws IOException;
 
-	public abstract void showCommitmentScheme(Parameters parameters, String session, CommitTx commitTx,
+	public abstract void showCommitmentScheme(Parameters parameters, String session, LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException;
 
 }

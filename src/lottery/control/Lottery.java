@@ -13,14 +13,15 @@ import java.util.List;
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
 import lottery.parameters.ParametersUpdater;
-import lottery.transaction.ClaimTx;
 import lottery.transaction.CommitTx;
+import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
 
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.ProtocolException;
+import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.TransactionOutput;
 
 public class Lottery {
@@ -71,7 +72,7 @@ public class Lottery {
 			secret = parametersUpdater.askSecret(minLength, noPlayers);
 			//TODO: check values for errors
 			if (secret == null) {
-				secret = sampleSecret(minLength);
+				secret = sampleSecret();
 			}
 			memoryStorage.saveSecrets(parameters, session, secret);
 			notifier.showSecret(parameters, session, secret);
@@ -81,7 +82,7 @@ public class Lottery {
 		}
 	}
 	
-	protected byte[] sampleSecret(int minLength) {
+	protected byte[] sampleSecret() {
 	    SecureRandom random = new SecureRandom();
 	    int n = random.nextInt(noPlayers); 	//TODO: is it secure?
 	    byte[] secret = new byte[minLength + n];
@@ -118,20 +119,26 @@ public class Lottery {
 		try {
 			txOutput = parametersUpdater.askOutput(deposit, testnet);
 		} catch (ProtocolException e) {
-			// TODO Auto-generated catch block
+			// TODO
 			e.printStackTrace();
 		}
-		CommitTx commitTx = new CommitTx(txOutput, sk, pks, hash, fee, testnet);
+		LotteryTx commitTx = null;
+		try {
+			commitTx = new CommitTx(txOutput, sk, pks, position, hash, minLength, fee, testnet);
+		} catch (ScriptException e) {
+			// TODO 
+			e.printStackTrace();
+		}
 		memoryStorage.saveTransaction(parameters, session, commitTx);
 		OpenTx openTx = new OpenTx(commitTx, sk, secret, fee, testnet);
 		memoryStorage.saveTransaction(parameters, session, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
 		long protocolStart = parametersUpdater.askStartTime(roundCurrentTime());
-		long payDepositTimestamp = protocolStart + 4 * LotteryUtils.minutesToMiliseconds(lockTime); //TODO 4? //TODO: 
+		long payDepositTimestamp = protocolStart + 4 * lockTime * 60; //TODO 4? //TODO: notify
 		
 		for (int k = 0; k < noPlayers; ++k) {
 			if (k != position) {
-				PayDepositTx payTx = new PayDepositTx(commitTx, sk, pks.get(k), fee, payDepositTimestamp, testnet);
+				PayDepositTx payTx = new PayDepositTx(commitTx, k, sk, pks.get(k), fee, payDepositTimestamp, testnet);
 				payTxs.add(payTx);
 				memoryStorage.saveTransaction(parameters, session, payTx);
 			}
@@ -150,8 +157,8 @@ public class Lottery {
 	}
 
 	protected long roundCurrentTime() {
-		long now = new Date().getTime();
-		return now - (now % (1000 * 60 * 5));
+		long seconds = new Date().getTime() / 1000;
+		return seconds - (seconds % (60 * 5));
 	}
 
 	protected void executionPhase() {

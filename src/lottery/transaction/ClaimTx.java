@@ -63,7 +63,7 @@ public class ClaimTx extends LotteryTx {
 					scriptBuilder.data(signature.encodeToBitcoin());
 				}
 				else {
-					scriptBuilder.data(Utils.parseAsHexOrBase58("01")); //TODO: do something with warning
+					scriptBuilder.data(emptySignature);
 				}
 			}
 			tx.getInput(0).setScriptSig(scriptBuilder.build());
