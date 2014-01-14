@@ -8,7 +8,9 @@ import java.util.Iterator;
 
 import logic.ClaimTx;
 import logic.LotteryTx;
+import parameters.MemoryDumper;
 import parameters.Parameters;
+import parameters.Parameters.Command;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
@@ -128,10 +130,17 @@ public class NotifierText extends Notifier {
 
 	@Override
 	public void showSecret(Parameters parameters, String session, byte[] secret) throws IOException {
-		String dir = getDir(BitcoinLotterySettings.openSubdirectory, parameters, session);
-		System.out.println("The provided Open transaction and its secret " +
-							"were save under the " + dir + " directory");
-		System.out.println("And the secret is:");
+		Command command = parameters.getCommand();
+		String dir = getDir(MemoryDumper.getSubdir(command), parameters, session);
+		if (command == Command.OPEN) {
+			System.out.println("The provided Open transaction and its secret " +
+								"were save under the " + dir + " directory");
+			System.out.println("And the secret is:");
+		}
+		else if (command == Command.LOTTERY) {
+			System.out.println("The secret was saved under the " + dir + " directory");
+			System.out.println("Your secret is:");
+		}
 		System.out.println(Utils.bytesToHexString(secret));
 	}
 }

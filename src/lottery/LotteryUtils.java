@@ -27,4 +27,8 @@ public class LotteryUtils {
 		
 		return dir;
 	}
+
+	public static long minutesToMiliseconds(int m) {
+		return m * 60 * 1000;
+	}
 }

@@ -37,6 +37,8 @@ public class BitcoinLotterySettings {
 	public static final String txClaimMoneyFilename = "claimmoney.tx";
 	public static final String secretsFilename = "secrets.tx";
 	
-	public static BigInteger defaultFee = Utils.toNanoCoins("0.0001");
+	public static final BigInteger defaultFee = Utils.toNanoCoins("0.0001");
+	public static final long defaultLockTimes = 120; //minutes
+	public static final int defaultMinLength = 32;
 	
 }

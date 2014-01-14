@@ -1,6 +1,7 @@
 package parameters;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import logic.LotteryTx;
@@ -13,5 +14,11 @@ public abstract class MemoryStorage {
 
 	public abstract void saveTransaction(Parameters parameters, String session, LotteryTx tx) throws IOException;
 
-	public abstract void saveSecrets(Parameters parameters, String session, List<byte[]> secrets) throws IOException ;
+	public abstract void saveSecrets(Parameters parameters, String session, List<byte[]> secrets) throws IOException;
+
+	public void saveSecrets(Parameters parameters, String session, byte[] secret) throws IOException {
+		List<byte[]> secrets = new LinkedList<byte[]>();
+		secrets.add(secret);
+		saveSecrets(parameters, session, secrets);
+	}
 }

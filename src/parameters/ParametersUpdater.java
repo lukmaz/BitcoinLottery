@@ -42,5 +42,15 @@ public abstract class ParametersUpdater {
 
 	public abstract BigInteger askFee() throws IOException;
 
+	public abstract List<byte[]> askPks() throws IOException;
+
+	public abstract BigInteger askStake() throws IOException;
+
+	public abstract long askLockTime() throws IOException;
 	
+	public abstract int askMinLength() throws IOException;
+
+	//returns null if secret should be (properly) randomly chosen
+	public abstract byte[] askSecret(int minLength, int noPlayers) throws IOException;
+
 }

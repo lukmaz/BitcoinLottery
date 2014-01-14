@@ -61,7 +61,7 @@ public class MemoryDumper extends MemoryStorage {
 		return testnet ? BitcoinLotterySettings.testnetSubdirectory : "";
 	}
 
-	protected String getSubdir(Command command) {
+	public static String getSubdir(Command command) { //TODO: move to LotteryUtils?
 		switch (command) {
 			case CLAIM_MONEY:
 				return BitcoinLotterySettings.claimSubdirectory;
