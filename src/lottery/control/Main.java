@@ -1,9 +1,9 @@
-package lottery;
+package lottery.control;
 
-import parameters.MemoryDumper;
-import parameters.MemoryStorage;
-import parameters.ParametersReader;
-import parameters.ParametersUpdater;
+import lottery.parameters.MemoryDumper;
+import lottery.parameters.MemoryStorage;
+import lottery.parameters.ParametersReader;
+import lottery.parameters.ParametersUpdater;
 
 public class Main {
 

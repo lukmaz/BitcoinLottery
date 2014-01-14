@@ -1,4 +1,4 @@
-package lottery;
+package lottery.control;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -6,17 +6,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import logic.ClaimTx;
-import logic.LotteryTx;
-import parameters.MemoryDumper;
-import parameters.Parameters;
-import parameters.Parameters.Command;
+import lottery.parameters.MemoryDumper;
+import lottery.parameters.Parameters;
+import lottery.parameters.Parameters.Command;
+import lottery.settings.BitcoinLotterySettings;
+import lottery.transaction.ClaimTx;
+import lottery.transaction.LotteryTx;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Utils;
-
-import settings.BitcoinLotterySettings;
 
 public class NotifierText extends Notifier {
 

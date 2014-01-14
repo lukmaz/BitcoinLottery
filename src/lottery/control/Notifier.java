@@ -1,10 +1,10 @@
-package lottery;
+package lottery.control;
 
 import java.io.IOException;
 import java.util.Collection;
 
-import logic.ClaimTx;
-import parameters.Parameters;
+import lottery.parameters.Parameters;
+import lottery.transaction.ClaimTx;
 
 import com.google.bitcoin.core.ECKey;
 

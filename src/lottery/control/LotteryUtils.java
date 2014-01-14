@@ -1,4 +1,4 @@
-package lottery;
+package lottery.control;
 
 import java.io.File;
 import java.io.IOException;

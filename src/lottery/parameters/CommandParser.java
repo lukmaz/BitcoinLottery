@@ -1,9 +1,9 @@
-package parameters;
+package lottery.parameters;
 
 import java.io.File;
 
-import parameters.Parameters.Command;
-import settings.BitcoinLotterySettings;
+import lottery.parameters.Parameters.Command;
+import lottery.settings.BitcoinLotterySettings;
 
 
 public class CommandParser {

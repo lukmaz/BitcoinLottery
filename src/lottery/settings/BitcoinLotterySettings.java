@@ -1,4 +1,4 @@
-package settings;
+package lottery.settings;
 
 import java.math.BigInteger;
 

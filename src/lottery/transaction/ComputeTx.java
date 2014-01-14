@@ -1,4 +1,4 @@
-package logic;
+package lottery.transaction;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

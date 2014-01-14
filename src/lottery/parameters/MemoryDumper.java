@@ -1,20 +1,20 @@
-package parameters;
+package lottery.parameters;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import parameters.Parameters.Command;
-import settings.BitcoinLotterySettings;
-import logic.ClaimTx;
-import logic.CommitTx;
-import logic.ComputeTx;
-import logic.LotteryTx;
-import logic.OpenTx;
-import logic.PayDepositTx;
-import logic.PutMoneyTx;
-import lottery.LotteryUtils;
+import lottery.control.LotteryUtils;
+import lottery.parameters.Parameters.Command;
+import lottery.settings.BitcoinLotterySettings;
+import lottery.transaction.ClaimTx;
+import lottery.transaction.CommitTx;
+import lottery.transaction.ComputeTx;
+import lottery.transaction.LotteryTx;
+import lottery.transaction.OpenTx;
+import lottery.transaction.PayDepositTx;
+import lottery.transaction.PutMoneyTx;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;

@@ -1,4 +1,4 @@
-package parameters;
+package lottery.parameters;
 
 public class Parameters {
 	public enum Command {

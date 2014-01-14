@@ -1,15 +1,15 @@
-package parameters;
+package lottery.parameters;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
+import lottery.parameters.CommandParser.CommandArg;
+
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.WrongNetworkException;
-
-import parameters.CommandParser.CommandArg;
 
 public abstract class ParametersUpdater {
 	protected Parameters parameters;

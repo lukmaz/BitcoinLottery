@@ -1,4 +1,4 @@
-package parameters;
+package lottery.parameters;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,8 +7,8 @@ import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 
-import logic.LotteryTx;
-import settings.BitcoinLotterySettings;
+import lottery.settings.BitcoinLotterySettings;
+import lottery.transaction.LotteryTx;
 
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.AddressFormatException;
