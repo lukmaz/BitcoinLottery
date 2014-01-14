@@ -5,13 +5,17 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import lottery.parameters.MemoryDumper;
 import lottery.parameters.Parameters;
 import lottery.parameters.Parameters.Command;
 import lottery.settings.BitcoinLotterySettings;
 import lottery.transaction.ClaimTx;
+import lottery.transaction.CommitTx;
 import lottery.transaction.LotteryTx;
+import lottery.transaction.OpenTx;
+import lottery.transaction.PayDepositTx;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
@@ -141,5 +145,32 @@ public class NotifierText extends Notifier {
 			System.out.println("Your secret is:");
 		}
 		System.out.println(Utils.bytesToHexString(secret));
+	}
+
+	@Override
+	public void showHash(byte[] hash) throws IOException {
+		// TODO 
+		System.out.println("And the hash is:");
+		System.out.println(Utils.bytesToHexString(hash));
+	}
+
+	@Override
+	public void showCommitmentScheme(Parameters parameters, String session, CommitTx commitTx,
+			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException {
+		//TODO
+		String dir = getDir(BitcoinLotterySettings.lotterySubdirectory, parameters, session);
+		System.out.println("The Commit transaction, Open transaction and partial PayDeposit transaction " +
+							"were save under the " + dir + " directory.");
+		System.out.println("The Commit transaction is (you should broadcast it now):");
+		System.out.println(Utils.bytesToHexString(commitTx.toRaw()));
+		System.out.println("The Open transaction is (you should not broadcast it before the Compute transaction is final):");
+		System.out.println(Utils.bytesToHexString(openTx.toRaw()));
+		System.out.println("The partial PayDeposit transactions are (you should send them to other players):");
+		for (int k = 0; k < payTxs.size(); ++k) {
+			if (payTxs.get(k) != null) {
+				System.out.print("For player nr. " + (k+1) + ": ");
+				System.out.println(Utils.bytesToHexString(payTxs.get(k).toRaw()));
+			}
+		}
 	}
 }

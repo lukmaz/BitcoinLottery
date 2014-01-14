@@ -2,16 +2,26 @@ package lottery.control;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
 import lottery.parameters.ParametersUpdater;
+import lottery.transaction.ClaimTx;
+import lottery.transaction.CommitTx;
+import lottery.transaction.OpenTx;
+import lottery.transaction.PayDepositTx;
 
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.ProtocolException;
+import com.google.bitcoin.core.TransactionOutput;
 
 public class Lottery {
 	protected ParametersUpdater parametersUpdater;
@@ -20,6 +30,7 @@ public class Lottery {
 	protected Notifier notifier;
 	protected ECKey sk = null;
 	protected List<byte[]> pks = null;
+	protected int noPlayers = 0;
 	protected int position = 0;
 	protected BigInteger stake = null;
 	protected BigInteger fee = null;
@@ -37,31 +48,30 @@ public class Lottery {
 		this.notifier = notifier;
 	}
 	
-	public void lottery() throws IOException { //TODO: move to separate class (?)
+	public void lottery() throws IOException {
 		initializationPhase();
 		depositPhase();
 		executionPhase();
-		//Deposit phase
-		// TODO
 	}
 
 	protected void initializationPhase() throws IOException {
-		//Initialization phase
+		//TODO: notify phase
 		Parameters parameters = parametersUpdater.getParameters();
 		boolean testnet = parameters.isTestnet();
 		
 		try {
 			sk = parametersUpdater.askSK(testnet);
 			pks = parametersUpdater.askPks();
+			noPlayers = pks.size();
 			position = getPlayerPos(sk, pks);
 			stake = parametersUpdater.askStake();
 			fee = parametersUpdater.askFee();
 			lockTime = parametersUpdater.askLockTime();
 			minLength = parametersUpdater.askMinLength();
-			secret = parametersUpdater.askSecret(minLength, pks.size());
+			secret = parametersUpdater.askSecret(minLength, noPlayers);
 			//TODO: check values for errors
 			if (secret == null) {
-				secret = sampleSecret(minLength, pks.size());
+				secret = sampleSecret(minLength);
 			}
 			memoryStorage.saveSecrets(parameters, session, secret);
 			notifier.showSecret(parameters, session, secret);
@@ -71,7 +81,7 @@ public class Lottery {
 		}
 	}
 	
-	protected byte[] sampleSecret(int minLength, int noPlayers) {
+	protected byte[] sampleSecret(int minLength) {
 	    SecureRandom random = new SecureRandom();
 	    int n = random.nextInt(noPlayers); 	//TODO: is it secure?
 	    byte[] secret = new byte[minLength + n];
@@ -81,21 +91,72 @@ public class Lottery {
 
 	protected int getPlayerPos(ECKey sk, List<byte[]> pks) {
 		byte[] pk = sk.getPubKey();
-		for (int k = 0; k < pks.size(); ++k) {
+		for (int k = 0; k < noPlayers; ++k) {
 			if (Arrays.equals(pk, pks.get(k))) {
-				return k+1;
+				return k;
 			}
 		}
 		throw new RuntimeException("Provided secret key does not match any of provided public keys"); //TODO change exception
 	}
 
-	protected void executionPhase() {
-		// TODO Auto-generated method stub
+	protected void depositPhase() throws IOException {
+		//TODO: notify phase
+		MessageDigest SHA256 = null;
+		Parameters parameters = parametersUpdater.getParameters();
+		boolean testnet = parameters.isTestnet(); 
+		try {
+			SHA256 = MessageDigest.getInstance("SHA-256"); //TODO: global settings for hash function
+		} catch (NoSuchAlgorithmException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		SHA256.update(secret);
+		byte[] hash = SHA256.digest();
+		notifier.showHash(hash); //TODO: save it?
+		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1));
+		TransactionOutput txOutput = null;
+		try {
+			txOutput = parametersUpdater.askOutput(deposit, testnet);
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		CommitTx commitTx = new CommitTx(txOutput, sk, pks, hash, fee, testnet);
+		memoryStorage.saveTransaction(parameters, session, commitTx);
+		OpenTx openTx = new OpenTx(commitTx, sk, secret, fee, testnet);
+		memoryStorage.saveTransaction(parameters, session, openTx);
+		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
+		long protocolStart = parametersUpdater.askStartTime(roundCurrentTime());
+		long payDepositTimestamp = protocolStart + 4 * LotteryUtils.minutesToMiliseconds(lockTime); //TODO 4? //TODO: 
 		
+		for (int k = 0; k < noPlayers; ++k) {
+			if (k != position) {
+				PayDepositTx payTx = new PayDepositTx(commitTx, sk, pks.get(k), fee, payDepositTimestamp, testnet);
+				payTxs.add(payTx);
+				memoryStorage.saveTransaction(parameters, session, payTx);
+			}
+			else {
+				payTxs.add(null); //TODO ?
+				//TODO: save empty line (?)
+			}
+		}
+		notifier.showCommitmentScheme(parameters, session, commitTx, openTx, payTxs);
+		
+		//TODO: ask for other players commits and payDeposits
+		//TODO: check them, extract hashes
+		//TODO: sign received payDeposits
+		//TODO: save everything and notify
+		// TODO 
 	}
 
-	protected void depositPhase() {
-		// TODO Auto-generated method stub
+	protected long roundCurrentTime() {
+		long now = new Date().getTime();
+		return now - (now % (1000 * 60 * 5));
+	}
+
+	protected void executionPhase() {
+		//TODO: notify phase
+		// TODO
 		
 	}
 }

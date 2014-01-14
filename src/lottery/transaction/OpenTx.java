@@ -1,7 +1,9 @@
 package lottery.transaction;
 
+import java.math.BigInteger;
 import java.util.List;
 
+import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.ProtocolException;
 import com.google.bitcoin.core.ScriptException;
@@ -17,6 +19,11 @@ public class OpenTx extends LotteryTx {
 		tx = new Transaction(params, rawTx);
 		validateIsOpen();
 		computeSecret();
+	}
+
+	public OpenTx(CommitTx commitTx, ECKey sk, byte[] secret2, BigInteger fee,
+			boolean testnet) {
+		// TODO create !!!
 	}
 
 	protected void computeSecret() throws ScriptException {

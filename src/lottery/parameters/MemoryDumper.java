@@ -1,6 +1,8 @@
 package lottery.parameters;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -51,7 +53,7 @@ public class MemoryDumper extends MemoryStorage {
 		File dir = LotteryUtils.getDir(pathParts);
 		File txFile = new File(dir, txFilename);
 		
-		PrintWriter writer = new PrintWriter(txFile.getAbsolutePath());
+		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(txFile.getAbsolutePath(), true)));
 		writer.println(Utils.bytesToHexString(tx.toRaw()));
 		writer.close();
 	}

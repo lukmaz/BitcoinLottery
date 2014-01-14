@@ -9,6 +9,8 @@ import lottery.parameters.CommandParser.CommandArg;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.ProtocolException;
+import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.WrongNetworkException;
 
 public abstract class ParametersUpdater {
@@ -30,9 +32,11 @@ public abstract class ParametersUpdater {
 		this.parameters = parameters;
 	}
 
-	public abstract String askCompute() throws IOException;
+	public abstract String askCompute() throws IOException; //TODO: change return value?
 	
-	public abstract String askOpen() throws IOException;
+	public abstract String askOpen() throws IOException; //TODO: change return value?
+
+	public abstract TransactionOutput askOutput(BigInteger stake, boolean testnet) throws IOException, ProtocolException;
 
 	public abstract List<byte[]> askSecrets(List<byte[]> hashes) throws IOException;
 
@@ -50,7 +54,10 @@ public abstract class ParametersUpdater {
 	
 	public abstract int askMinLength() throws IOException;
 
+	public abstract long askStartTime(long defaultTime) throws IOException;
+	
 	//returns null if secret should be (properly) randomly chosen
 	public abstract byte[] askSecret(int minLength, int noPlayers) throws IOException;
+
 
 }

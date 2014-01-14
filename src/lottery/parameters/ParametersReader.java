@@ -14,6 +14,9 @@ import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.DumpedPrivateKey;
 import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.ProtocolException;
+import com.google.bitcoin.core.Transaction;
+import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.WrongNetworkException;
 
@@ -168,5 +171,37 @@ public class ParametersReader extends ParametersUpdater {
 		}
 		
 		return secret;
+	}
+
+	@Override
+	public TransactionOutput askOutput(BigInteger stake, boolean testnet) throws IOException, ProtocolException {
+		// TODO
+		System.out.println("Enter a raw transaction to use as an input.");
+		System.out.println("Its output should have value exactly " + Utils.bitcoinValueToFriendlyString(stake) + " BTC.");
+		BufferedReader reader = getReader();
+		Transaction tx = new Transaction(LotteryTx.getNetworkParameters(testnet), Utils.parseAsHexOrBase58(reader.readLine()));
+		for (int k = 0; k < tx.getOutputs().size(); ++k) {
+			if (tx.getOutput(k).getValue().equals(stake)) { //TODO: what if there is more than one?
+				System.out.println("The output number " + k + " will be used.");
+				return tx.getOutput(k);
+			}
+		}
+		
+		throw new ProtocolException("Bad transaction values.");
+	}
+
+	@Override
+	public long askStartTime(long defaultTime) throws IOException {
+		// TODO 
+		BufferedReader reader = getReader();
+		System.out.println("Every party using the protocol should set the same protocol start timestamp.");
+		System.out.println("To use rounded value of actual time (" + defaultTime + ") press enter.");
+		System.out.println("Otherwise enter the same timestamp as other users (as unix timestamp).");
+		String line = reader.readLine();
+		if (!line.equals("")) {
+			defaultTime = Long.parseLong(line);
+		}
+		
+		return defaultTime;
 	}
 }
