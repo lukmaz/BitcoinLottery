@@ -144,7 +144,7 @@ public class StdIOHandler extends IOHandler {
 	public TransactionOutput askOutput(BigInteger stake, GenericVerifier<TransactionOutput> verifier) throws IOException {
 		writeln("Enter a raw transaction to use as an input.");
 		writeln("Its output should have value exactly " + Utils.bitcoinValueToFriendlyString(stake) + " BTC.");
-		return readObject(verifier, null); //TODO: print output number (or ask for it if more than one suits
+		return readObject(verifier, null); //TODO: print output number (or ask for it if more than one suits)
 	}
 	
 	@Override

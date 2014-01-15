@@ -8,11 +8,15 @@ import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.DumpedPrivateKey;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
+import com.google.bitcoin.core.ProtocolException;
 import com.google.bitcoin.core.Transaction;
+import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.WrongNetworkException;
 
+import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
+import lottery.transaction.OpenTx;
 
 
 public class InputVerifiers {
@@ -110,10 +114,10 @@ public class InputVerifiers {
 			try {
 				Long value = Long.parseLong(input);
 				if (value < min) {
-					throw new WrongInputException(type + " has to be bigger than " + min + ".");
+					throw new WrongInputException(type + " has to be greater than " + min + ".");
 				}
 				if (value > max) {
-					throw new WrongInputException(type + " has to be smaller than " + max + ".");
+					throw new WrongInputException(type + " has to be not greater than " + max + ".");
 				}
 				return value;
 			} catch (NumberFormatException e) {
@@ -182,5 +186,71 @@ public class InputVerifiers {
 		}
     }
 	
+	protected static class TxOutputVerifier implements GenericVerifier<TransactionOutput> {
+		protected NetworkParameters params;
+		protected BigInteger value;
+		
+		public TxOutputVerifier(BigInteger value, boolean testnet) {
+			this.value = value;
+			params = LotteryTx.getNetworkParameters(testnet);
+		}
+
+		public TransactionOutput verify(String input) throws WrongInputException {
+			try {
+				byte[] rawTx = Utils.parseAsHexOrBase58(input);
+				if (rawTx == null) {
+					throw new WrongInputException("Wrong format of the transaction.");
+				}
+				Transaction tx = new Transaction(params, rawTx);
+				for (int k = 0; k < tx.getOutputs().size(); ++k) {
+                    if (tx.getOutput(k).getValue().equals(value)) { //TODO: what if there is more than one?
+                            return tx.getOutput(k);
+                    }
+	            }
+	            throw new WrongInputException("Bad transaction values.");
+			} catch (ProtocolException e) {
+				throw new WrongInputException("Wrong format of the transaction.");
+			}
+        }
+    }
 	
+	protected static class ComputeTxVerifier implements GenericVerifier<ComputeTx> {
+
+		@Override
+		public ComputeTx verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
+	
+	protected static class OpenTxVerifier implements GenericVerifier<OpenTx> {
+
+		@Override
+		public OpenTx verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
+	
+	protected static class PkListVerifier implements GenericVerifier<byte[]> {
+
+		@Override
+		public byte[] verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
+	
+	protected static class SecretListVerifier implements GenericVerifier<byte[]> {
+
+		@Override
+		public byte[] verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
 }

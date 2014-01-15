@@ -29,7 +29,7 @@ public abstract class LotteryTx{
 		return tx.bitcoinSerialize();
 	}
 	
-	public static NetworkParameters getNetworkParameters(boolean testnet) {
+	public static NetworkParameters getNetworkParameters(boolean testnet) { //move to Utils?
 		return testnet ? TestNet3Params.get() : MainNetParams.get();
 	}
 	

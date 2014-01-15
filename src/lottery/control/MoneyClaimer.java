@@ -11,15 +11,11 @@ import lottery.transaction.ClaimTx;
 import lottery.transaction.ComputeTx;
 
 import com.google.bitcoin.core.Address;
-import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.ECKey;
-import com.google.bitcoin.core.ProtocolException;
-import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.VerificationException;
-import com.google.bitcoin.core.WrongNetworkException;
 
 public class MoneyClaimer {
-	protected IOHandler parametersUpdater;
+	protected IOHandler ioHandler;
 	protected MemoryStorage memoryStorage;
 	protected String session;
 	
@@ -27,32 +23,21 @@ public class MoneyClaimer {
 	public MoneyClaimer(IOHandler parametersUpdater, String session, 
 			MemoryStorage memoryStorage) {
 		super();
-		this.parametersUpdater = parametersUpdater;
+		this.ioHandler = parametersUpdater;
 		this.memoryStorage = memoryStorage;
 		this.session = session;
 	}
 	
 	public void claimMoney() throws IOException {
-		Parameters parameters = parametersUpdater.getParameters();
+		Parameters parameters = ioHandler.getParameters();
 		boolean testnet = parameters.isTestnet();
-		String txString = null;
-		txString = parametersUpdater.askCompute();
-		ComputeTx computeTx = null;
-		try {
-			computeTx = new ComputeTx(Utils.parseAsHexOrBase58(txString), parameters.isTestnet());
-		} catch (ProtocolException e) {
-			// TODO
-			e.printStackTrace();
-		} catch (VerificationException e) {
-			// TODO
-			e.printStackTrace();
-		}
+		ComputeTx computeTx = ioHandler.askCompute(new InputVerifiers.ComputeTxVerifier());
 		memoryStorage.saveTransaction(parameters, session, computeTx);
 
 		List<byte[]> secrets = null;
 		boolean secretsCorrect = false;
-		while (!secretsCorrect) {
-			secrets = parametersUpdater.askSecrets(computeTx.getSecretsHashes());
+		while (!secretsCorrect) { //TODO !!! change
+			secrets = ioHandler.askSecrets(computeTx.getSecretsHashes(), new InputVerifiers.SecretListVerifier());
 			memoryStorage.saveSecrets(parameters, session, secrets);
 			
 			secretsCorrect = computeTx.checkSecrets(secrets);
@@ -63,22 +48,12 @@ public class MoneyClaimer {
 				} catch (VerificationException e1) {// can not happen
 					e1.printStackTrace();
 				}
-				parametersUpdater.showWinner(winner);
+				ioHandler.showWinner(winner);
 				ECKey sk = null;
 				Address address = null;
-				try {
-					sk = parametersUpdater.askSK(new InputVerifiers.SkVerifier(testnet));
-					address = parametersUpdater.askAddress(new InputVerifiers.AddressVerifier(testnet));
-				} catch (WrongNetworkException e) {
-					// TODO
-					e.printStackTrace();
-					System.exit(1);
-				} catch (AddressFormatException e) {
-					// TODO
-					e.printStackTrace();
-					System.exit(1);
-				}
-				BigInteger fee = parametersUpdater.askFee(new InputVerifiers.FeeVerifier());
+				sk = ioHandler.askSK(new InputVerifiers.SkVerifier(testnet));
+				address = ioHandler.askAddress(new InputVerifiers.AddressVerifier(testnet));
+				BigInteger fee = ioHandler.askFee(new InputVerifiers.FeeVerifier());
 				ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, parameters.isTestnet());
 				try {
 					claimMoneyTx.addSecrets(secrets);
@@ -89,10 +64,10 @@ public class MoneyClaimer {
 					System.exit(1);
 				}
 				memoryStorage.saveTransaction(parameters, session, claimMoneyTx);
-				parametersUpdater.showClaimMoney(parameters, session, claimMoneyTx);
+				ioHandler.showClaimMoney(parameters, session, claimMoneyTx);
 			}
 			else {
-				parametersUpdater.showWrongSecrets(computeTx.findBadSecrets(secrets));
+				ioHandler.showWrongSecrets(computeTx.findBadSecrets(secrets));
 			}
 		}
 	}
