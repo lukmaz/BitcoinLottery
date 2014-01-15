@@ -15,7 +15,6 @@ import javax.swing.InputVerifier;
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
 import lottery.parameters.IOHandler;
-import lottery.parameters.IOHandler.WrongInputException;
 import lottery.transaction.CommitTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
@@ -62,33 +61,21 @@ public class Lottery {
 		boolean testnet = parameters.isTestnet();
 		
 		try {
-			sk = parametersUpdater.askSK(testnet);
+			sk = parametersUpdater.askSK(new InputVerifiers.SkVerifier(testnet));
+			noPlayers = parametersUpdater.askNoPlayers(new InputVerifiers.NoPlayersVerifier()).intValue();
 			pks = parametersUpdater.askPks();
-			noPlayers = pks.size();
 			position = getPlayerPos(sk, pks);
 			stake = parametersUpdater.askStake(new InputVerifiers.StakeVerifier());
 			fee = parametersUpdater.askFee(new InputVerifiers.FeeVerifier());
-			lockTime = parametersUpdater.askLockTime();
-			minLength = parametersUpdater.askMinLength();
-			secret = parametersUpdater.askSecret(minLength, noPlayers);
-			//TODO: check values for errors
-			if (secret == null) {
-				secret = sampleSecret();
-			}
+			lockTime = parametersUpdater.askLockTime(new InputVerifiers.LockTimeVerifier());
+			minLength = parametersUpdater.askMinLength(new InputVerifiers.MinLengthVerifier()).intValue();
+			secret = parametersUpdater.askSecret(minLength, noPlayers, new InputVerifiers.NewSecretVerifier(minLength, noPlayers));
 			memoryStorage.saveSecrets(parameters, session, secret);
 			parametersUpdater.showSecret(parameters, session, secret);
 		} catch (AddressFormatException e) {
 			// TODO
 			e.printStackTrace();
 		}
-	}
-	
-	protected byte[] sampleSecret() {
-	    SecureRandom random = new SecureRandom();
-	    int n = random.nextInt(noPlayers); 	//TODO: is it secure?
-	    byte[] secret = new byte[minLength + n];
-		random.nextBytes(secret);
-		return secret;
 	}
 
 	protected int getPlayerPos(ECKey sk, List<byte[]> pks) {
@@ -134,7 +121,7 @@ public class Lottery {
 		OpenTx openTx = new OpenTx(commitTx, sk, secret, fee, testnet);
 		memoryStorage.saveTransaction(parameters, session, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
-		long protocolStart = parametersUpdater.askStartTime(roundCurrentTime());
+		long protocolStart = parametersUpdater.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
 		long payDepositTimestamp = protocolStart + 4 * lockTime * 60; //TODO 4? //TODO: notify
 		
 		for (int k = 0; k < noPlayers; ++k) {

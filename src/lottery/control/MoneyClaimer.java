@@ -34,6 +34,7 @@ public class MoneyClaimer {
 	
 	public void claimMoney() throws IOException {
 		Parameters parameters = parametersUpdater.getParameters();
+		boolean testnet = parameters.isTestnet();
 		String txString = null;
 		txString = parametersUpdater.askCompute();
 		ComputeTx computeTx = null;
@@ -66,8 +67,8 @@ public class MoneyClaimer {
 				ECKey sk = null;
 				Address address = null;
 				try {
-					sk = parametersUpdater.askSK(parameters.isTestnet());
-					address = parametersUpdater.askAddress(parameters.isTestnet());
+					sk = parametersUpdater.askSK(new InputVerifiers.SkVerifier(testnet));
+					address = parametersUpdater.askAddress(new InputVerifiers.AddressVerifier(testnet));
 				} catch (WrongNetworkException e) {
 					// TODO
 					e.printStackTrace();
@@ -77,7 +78,7 @@ public class MoneyClaimer {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				BigInteger fee = parametersUpdater.askFee();
+				BigInteger fee = parametersUpdater.askFee(new InputVerifiers.FeeVerifier());
 				ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, parameters.isTestnet());
 				try {
 					claimMoneyTx.addSecrets(secrets);

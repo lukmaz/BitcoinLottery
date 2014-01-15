@@ -123,8 +123,8 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public Integer askMinLength(GenericVerifier<Integer> verifier) throws IOException {
-		int minLength = BitcoinLotterySettings.defaultMinLength;
+	public Long askMinLength(GenericVerifier<Long> verifier) throws IOException {
+		long minLength = BitcoinLotterySettings.defaultMinLength;
 		writeln("Enter the minimal length of the secrets (in bytes).");
 		writeln("To use default value (" + minLength + ") press enter");
 		writeln("   (smaller lengths may help the adversary to learn your secret)");
@@ -148,7 +148,7 @@ public class StdIOHandler extends IOHandler {
 	}
 	
 	@Override
-	public Integer askNoPlayers(GenericVerifier<Integer> verifier) throws IOException {
+	public Long askNoPlayers(GenericVerifier<Long> verifier) throws IOException {
 		writeln("Enter number of players.");
 		return readObject(verifier, null);
 	}
@@ -181,17 +181,21 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showHelp() {
 		// TODO
-		StringBuilder arguments = new StringBuilder();
+		StringBuilder usage = new StringBuilder();
 		char separator = '|';
-		arguments.append(BitcoinLotterySettings.argHelp).append(separator)
+		usage.append("bitcoinlottery {")
+				 .append(BitcoinLotterySettings.argHelp).append(separator)
 				 .append(BitcoinLotterySettings.argVersion).append(separator)
 				 .append(BitcoinLotterySettings.argGen).append(separator)
 				 .append(BitcoinLotterySettings.argClaimMoney).append(separator)
-				 .append(BitcoinLotterySettings.argLottery);
-		writeln("BitcoinLottery " + BitcoinLotterySettings.version + ". Usage:\n" +
-							"bitcoinlottery {" + arguments + "}" + 
-							" [" + BitcoinLotterySettings.argDirPrefix + "<path>]" +
-							" [" + BitcoinLotterySettings.argTestnet + "]");
+				 .append(BitcoinLotterySettings.argLottery)
+				 .append("} [")
+				 .append(BitcoinLotterySettings.argDirPrefix)
+				 .append("<path>] [")
+				 .append(BitcoinLotterySettings.argTestnet)
+				 .append("]");
+		writeln("BitcoinLottery " + BitcoinLotterySettings.version + ". Usage:");
+		writeln(usage.toString());
 		printArgDetails(BitcoinLotterySettings.argHelp,       "prints this help");
 		printArgDetails(BitcoinLotterySettings.argVersion,    "prints version and general information");
 		printArgDetails(BitcoinLotterySettings.argGen,        "generates fresh pair <public key, secret key>");
@@ -203,7 +207,6 @@ public class StdIOHandler extends IOHandler {
 				"is stored under the <path> location (by default it is " + BitcoinLotterySettings.defaultDir);
 		printArgDetails(BitcoinLotterySettings.argTestnet,
 				"use this option to use the testnet network instead of the main Bitcoin chain");
-
 	}
 	
 	protected void printArgDetails(String arg, String details) {
@@ -211,7 +214,7 @@ public class StdIOHandler extends IOHandler {
 		int maxTab = 15;
 		char[] tab = new char[maxTab - arg.length()];
 		Arrays.fill(tab, ' ');
-		line.append("  ")
+		line.append("   ")
 			.append(arg)
 			.append(tab)
 			.append(details);
@@ -221,13 +224,12 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showVersion() {
 		//TODO
-		writeln("BitcoinLottery protocol implementation\n"
-							+ "version: " + BitcoinLotterySettings.version + "\n" +
-							"In this version all broadcasts and most of validations must be performed manually\n" +
-							"For more info about the protocol see te paper: " + BitcoinLotterySettings.paper + "\n" + 
-							"To report bugs contact " + BitcoinLotterySettings.author + 
-							" at: " + BitcoinLotterySettings.email + "\n" +
-							"This application comes with no warranty");
+		writeln("BitcoinLottery protocol implementation");
+		writeln("version: " + BitcoinLotterySettings.version);
+		writeln("In this version all broadcasts and most of validations must be performed manually");
+		writeln("For more info about the protocol see te paper: " + BitcoinLotterySettings.paper); 
+		writeln("To report bugs contact " + BitcoinLotterySettings.author + " at: " + BitcoinLotterySettings.email);
+		writeln("This application comes with no warranty");
 	}
 
 	protected String getDir(String subdir, Parameters parameters, String session) throws IOException {
@@ -250,7 +252,6 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showWinner(int winner) {
-		//TODO
 		//TODO: show winners pk
 		writeln("The winner is the player number " + winner);		
 		writeln("    (numerating starts with 1).");		

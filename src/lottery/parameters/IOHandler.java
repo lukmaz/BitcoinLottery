@@ -50,11 +50,11 @@ public abstract class IOHandler {
 	public abstract Long askLockTime(GenericVerifier<Long> verifier) throws IOException;
 	public abstract Long askStartTime(long defaultTime, GenericVerifier<Long> verifier) throws IOException;
 	
-	public abstract Integer askMinLength(GenericVerifier<Integer> verifier) throws IOException;
+	public abstract Long askMinLength(GenericVerifier<Long> verifier) throws IOException;
 	
 	public abstract byte[] askSecret(int minLength, int noPlayers, GenericVerifier<byte[]> verifier) throws IOException;
 	
-	public abstract Integer askNoPlayers(GenericVerifier<Integer> verifier) throws IOException;
+	public abstract Long askNoPlayers(GenericVerifier<Long> verifier) throws IOException;
 	public abstract List<byte[]> askPks(int noPlayers, GenericVerifier<byte[]> verifier) throws IOException;
 	public abstract List<byte[]> askSecrets(List<byte[]> hashes, GenericVerifier<byte[]> verifier) throws IOException;
 
