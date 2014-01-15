@@ -10,9 +10,12 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.InputVerifier;
+
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
-import lottery.parameters.ParametersUpdater;
+import lottery.parameters.IOHandler;
+import lottery.parameters.IOHandler.WrongInputException;
 import lottery.transaction.CommitTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
@@ -25,10 +28,9 @@ import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.TransactionOutput;
 
 public class Lottery {
-	protected ParametersUpdater parametersUpdater;
+	protected IOHandler parametersUpdater;
 	protected MemoryStorage memoryStorage;
 	protected String session;
-	protected Notifier notifier;
 	protected ECKey sk = null;
 	protected List<byte[]> pks = null;
 	protected int noPlayers = 0;
@@ -40,13 +42,12 @@ public class Lottery {
 	protected byte[] secret = null;
 	
 	
-	public Lottery(ParametersUpdater parametersUpdater, String session, 
-			MemoryStorage memoryStorage, Notifier notifier) {
+	public Lottery(IOHandler parametersUpdater, String session, 
+			MemoryStorage memoryStorage) {
 		super();
 		this.parametersUpdater = parametersUpdater;
 		this.memoryStorage = memoryStorage;
 		this.session = session;
-		this.notifier = notifier;
 	}
 	
 	public void lottery() throws IOException {
@@ -54,7 +55,7 @@ public class Lottery {
 		depositPhase();
 		executionPhase();
 	}
-
+	
 	protected void initializationPhase() throws IOException {
 		//TODO: notify phase
 		Parameters parameters = parametersUpdater.getParameters();
@@ -65,8 +66,8 @@ public class Lottery {
 			pks = parametersUpdater.askPks();
 			noPlayers = pks.size();
 			position = getPlayerPos(sk, pks);
-			stake = parametersUpdater.askStake();
-			fee = parametersUpdater.askFee();
+			stake = parametersUpdater.askStake(new InputVerifiers.StakeVerifier());
+			fee = parametersUpdater.askFee(new InputVerifiers.FeeVerifier());
 			lockTime = parametersUpdater.askLockTime();
 			minLength = parametersUpdater.askMinLength();
 			secret = parametersUpdater.askSecret(minLength, noPlayers);
@@ -75,7 +76,7 @@ public class Lottery {
 				secret = sampleSecret();
 			}
 			memoryStorage.saveSecrets(parameters, session, secret);
-			notifier.showSecret(parameters, session, secret);
+			parametersUpdater.showSecret(parameters, session, secret);
 		} catch (AddressFormatException e) {
 			// TODO
 			e.printStackTrace();
@@ -113,7 +114,7 @@ public class Lottery {
 		}
 		SHA256.update(secret);
 		byte[] hash = SHA256.digest();
-		notifier.showHash(hash); //TODO: save it?
+		parametersUpdater.showHash(hash); //TODO: save it?
 		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1));
 		TransactionOutput txOutput = null;
 		try {
@@ -147,8 +148,9 @@ public class Lottery {
 				//TODO: save empty line (?)
 			}
 		}
-		notifier.showCommitmentScheme(parameters, session, commitTx, openTx, payTxs);
-		
+		parametersUpdater.showCommitmentScheme(parameters, session, commitTx, openTx, payTxs);
+//		List<CommitTx> othersCommitTxs = parametersUpdater.askOtherCommits();
+//		List<PayDepositTx> othersPayTxs = parametersUpdater.askOtherCommits();
 		//TODO: ask for other players commits and payDeposits
 		//TODO: check them, extract hashes
 		//TODO: sign received payDeposits

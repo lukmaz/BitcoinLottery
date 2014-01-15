@@ -4,21 +4,19 @@ import java.io.IOException;
 import java.util.Date;
 
 import lottery.parameters.MemoryStorage;
-import lottery.parameters.ParametersUpdater;
+import lottery.parameters.IOHandler;
 
 public class Controller {
 
-	protected ParametersUpdater parametersUpdater;
+	protected IOHandler parametersUpdater;
 	protected MemoryStorage memoryStorage;
-	protected Notifier notifier;
 	protected String session;
 		
-	public Controller(ParametersUpdater parametersUpdater,
-			MemoryStorage memoryStorage, Notifier notifier) {
+	public Controller(IOHandler parametersUpdater,
+			MemoryStorage memoryStorage) {
 		Long lDateTime = new Date().getTime();
 		this.parametersUpdater = parametersUpdater;
 		this.memoryStorage = memoryStorage;
-		this.notifier = notifier;
 		this.session = lDateTime.toString(); 
 	}
 
@@ -32,16 +30,16 @@ public class Controller {
 					showHelp();
 					break;
 				case GENERATE_KEYS:
-					new KeyGenerator(parametersUpdater, session, memoryStorage, notifier).generateKeys();
+					new KeyGenerator(parametersUpdater, session, memoryStorage).generateKeys();
 					break;
 				case CLAIM_MONEY:
-					new MoneyClaimer(parametersUpdater, session, memoryStorage, notifier).claimMoney();
+					new MoneyClaimer(parametersUpdater, session, memoryStorage).claimMoney();
 					break;
 				case OPEN:
-					new OpenSecretPuller(parametersUpdater, session, memoryStorage, notifier).open();
+					new OpenSecretPuller(parametersUpdater, session, memoryStorage).open();
 					break;
 				case LOTTERY:
-					new Lottery(parametersUpdater, session, memoryStorage, notifier).lottery();
+					new Lottery(parametersUpdater, session, memoryStorage).lottery();
 					break;
 				default:
 					throw new RuntimeException("BitcoinLottery: Illegal command.");
@@ -53,10 +51,10 @@ public class Controller {
 	}
 
 	protected void showHelp() {
-		notifier.showHelp();
+		parametersUpdater.showHelp();
 	}
 
 	protected void showVersion() {
-		notifier.showVersion();
+		parametersUpdater.showVersion();
 	}
 }

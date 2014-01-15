@@ -6,7 +6,6 @@ import java.util.List;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.Transaction;
-import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.crypto.TransactionSignature;
 import com.google.bitcoin.script.ScriptBuilder;

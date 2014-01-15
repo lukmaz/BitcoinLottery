@@ -8,23 +8,21 @@ import com.google.bitcoin.core.VerificationException;
 
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
-import lottery.parameters.ParametersUpdater;
+import lottery.parameters.IOHandler;
 import lottery.transaction.OpenTx;
 
 public class OpenSecretPuller {
-	protected ParametersUpdater parametersUpdater;
+	protected IOHandler parametersUpdater;
 	protected MemoryStorage memoryStorage;
 	protected String session;
-	protected Notifier notifier;
 	
 	
-	public OpenSecretPuller(ParametersUpdater parametersUpdater, String session, 
-			MemoryStorage memoryStorage, Notifier notifier) {
+	public OpenSecretPuller(IOHandler parametersUpdater, String session, 
+			MemoryStorage memoryStorage) {
 		super();
 		this.parametersUpdater = parametersUpdater;
 		this.memoryStorage = memoryStorage;
 		this.session = session;
-		this.notifier = notifier;
 	}
 	
 	public void open() throws IOException {
@@ -45,6 +43,6 @@ public class OpenSecretPuller {
 		memoryStorage.saveTransaction(parameters, session, openTx);
 		byte[] secret = openTx.getSecret();
 		memoryStorage.saveSecrets(parameters, session, secret);
-		notifier.showSecret(parameters, session, secret);
+		parametersUpdater.showSecret(parameters, session, secret);
 	}
 }

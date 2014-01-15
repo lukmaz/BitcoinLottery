@@ -6,7 +6,7 @@ import java.util.List;
 
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
-import lottery.parameters.ParametersUpdater;
+import lottery.parameters.IOHandler;
 import lottery.transaction.ClaimTx;
 import lottery.transaction.ComputeTx;
 
@@ -19,19 +19,17 @@ import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.core.WrongNetworkException;
 
 public class MoneyClaimer {
-	protected ParametersUpdater parametersUpdater;
+	protected IOHandler parametersUpdater;
 	protected MemoryStorage memoryStorage;
 	protected String session;
-	protected Notifier notifier;
 	
 	
-	public MoneyClaimer(ParametersUpdater parametersUpdater, String session, 
-			MemoryStorage memoryStorage, Notifier notifier) {
+	public MoneyClaimer(IOHandler parametersUpdater, String session, 
+			MemoryStorage memoryStorage) {
 		super();
 		this.parametersUpdater = parametersUpdater;
 		this.memoryStorage = memoryStorage;
 		this.session = session;
-		this.notifier = notifier;
 	}
 	
 	public void claimMoney() throws IOException {
@@ -64,7 +62,7 @@ public class MoneyClaimer {
 				} catch (VerificationException e1) {// can not happen
 					e1.printStackTrace();
 				}
-				notifier.showWinner(winner);
+				parametersUpdater.showWinner(winner);
 				ECKey sk = null;
 				Address address = null;
 				try {
@@ -90,10 +88,10 @@ public class MoneyClaimer {
 					System.exit(1);
 				}
 				memoryStorage.saveTransaction(parameters, session, claimMoneyTx);
-				notifier.showClaimMoney(parameters, session, claimMoneyTx);
+				parametersUpdater.showClaimMoney(parameters, session, claimMoneyTx);
 			}
 			else {
-				notifier.showWrongSecrets(computeTx.findBadSecrets(secrets));
+				parametersUpdater.showWrongSecrets(computeTx.findBadSecrets(secrets));
 			}
 		}
 	}

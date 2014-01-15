@@ -2,16 +2,15 @@ package lottery.control;
 
 import lottery.parameters.MemoryDumper;
 import lottery.parameters.MemoryStorage;
-import lottery.parameters.ParametersReader;
-import lottery.parameters.ParametersUpdater;
+import lottery.parameters.StdIOHandler;
+import lottery.parameters.IOHandler;
 
 public class Main {
 
 	public static void main(String[] args) {
-		ParametersUpdater parametersUpdater = new ParametersReader(args);
+		IOHandler parametersUpdater = new StdIOHandler(args);
 		MemoryStorage memoryStorage = new MemoryDumper();
-		Notifier notifier = new NotifierText();
-		Controller controller = new Controller(parametersUpdater, memoryStorage, notifier);
+		Controller controller = new Controller(parametersUpdater, memoryStorage);
 		controller.run();
 	}
 }
