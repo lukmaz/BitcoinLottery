@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,4 +30,15 @@ public class LotteryUtils {
 		return dir;
 	}
 	
+	static byte[] calcHash(byte[] secret) {
+		MessageDigest SHA256 = null; 
+		try {
+			SHA256 = MessageDigest.getInstance("SHA-256"); //TODO: global settings for hash function
+		} catch (NoSuchAlgorithmException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		SHA256.update(secret);
+		return SHA256.digest();
+	}
 }

@@ -10,23 +10,22 @@ import lottery.transaction.OpenTx;
 public class OpenSecretPuller {
 	protected IOHandler ioHandler;
 	protected MemoryStorage memoryStorage;
-	protected String session;
+	protected Parameters parameters;
 	
 	
-	public OpenSecretPuller(IOHandler parametersUpdater, String session, 
+	public OpenSecretPuller(IOHandler iOHandler, Parameters parameters, 
 			MemoryStorage memoryStorage) {
 		super();
-		this.ioHandler = parametersUpdater;
+		this.ioHandler = iOHandler;
 		this.memoryStorage = memoryStorage;
-		this.session = session;
+		this.parameters = parameters;
 	}
 	
 	public void open() throws IOException {
-		Parameters parameters = ioHandler.getParameters();
-		OpenTx openTx = ioHandler.askOpen(new InputVerifiers.OpenTxVerifier());
-		memoryStorage.saveTransaction(parameters, session, openTx);
+		OpenTx openTx = ioHandler.askOpen(new InputVerifiers.OpenTxVerifier(parameters.isTestnet()));
+		memoryStorage.saveTransaction(parameters, openTx);
 		byte[] secret = openTx.getSecret();
-		memoryStorage.saveSecrets(parameters, session, secret);
-		ioHandler.showSecret(parameters, session, secret);
+		memoryStorage.saveSecret(parameters, secret);
+		ioHandler.showSecret(parameters, secret);
 	}
 }

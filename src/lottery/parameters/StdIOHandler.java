@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,8 +28,7 @@ import com.google.bitcoin.core.Utils;
 public class StdIOHandler extends IOHandler {
 	protected BufferedReader reader;
 
-	public StdIOHandler(String[] args) {
-		super(args);
+	public StdIOHandler() {
 		InputStreamReader isReader = new InputStreamReader(System.in);
 		reader = new BufferedReader(isReader);
 	}
@@ -188,6 +185,7 @@ public class StdIOHandler extends IOHandler {
 				 .append(BitcoinLotterySettings.argVersion).append(separator)
 				 .append(BitcoinLotterySettings.argGen).append(separator)
 				 .append(BitcoinLotterySettings.argClaimMoney).append(separator)
+				 .append(BitcoinLotterySettings.argOpen).append(separator)
 				 .append(BitcoinLotterySettings.argLottery)
 				 .append("} [")
 				 .append(BitcoinLotterySettings.argDirPrefix)
@@ -201,10 +199,11 @@ public class StdIOHandler extends IOHandler {
 		printArgDetails(BitcoinLotterySettings.argGen,        "generates fresh pair <public key, secret key>");
 		printArgDetails(BitcoinLotterySettings.argClaimMoney, "returns the transaction ClaimMoney when provided "
 																+ "transaction Compute and secrets s_i");
+		printArgDetails(BitcoinLotterySettings.argOpen,       "pulls out the secret from the Open transaction");
 		printArgDetails(BitcoinLotterySettings.argLottery,    "generates the transactions to perform the lottery");
 		printArgDetails(BitcoinLotterySettings.argDirPrefix + "<path>",
 				"Every value (e.g. keys, transactions) generated or received by the program " +
-				"is stored under the <path> location (by default it is " + BitcoinLotterySettings.defaultDir);
+				"is stored under the <path> location (by default it is " + BitcoinLotterySettings.defaultDir + ")");
 		printArgDetails(BitcoinLotterySettings.argTestnet,
 				"use this option to use the testnet network instead of the main Bitcoin chain");
 	}
@@ -232,16 +231,16 @@ public class StdIOHandler extends IOHandler {
 		writeln("This application comes with no warranty");
 	}
 
-	protected String getDir(String subdir, Parameters parameters, String session) throws IOException {
+	protected String getDir(String subdir, Parameters parameters) throws IOException {
 		String chain = parameters.isTestnet() ? BitcoinLotterySettings.testnetSubdirectory : "";
-		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
 		return LotteryUtils.getDir(pathParts).getAbsolutePath();
 	}
 	
 	@Override
-	public void showKey(Parameters parameters, String session, ECKey key) throws IOException {
+	public void showKey(Parameters parameters, ECKey key) throws IOException {
 		//TODO
-		String dir = getDir(BitcoinLotterySettings.keySubdirectory, parameters, session);
+		String dir = getDir(BitcoinLotterySettings.keySubdirectory, parameters);
 		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
 		writeln("Generated new <public key, secret key> pair" + (parameters.isTestnet() ? " (for the testnet)" : ""));			
 		writeln("They were saved under the " + dir + " directory");
@@ -261,9 +260,9 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public void showClaimMoney(Parameters parameters, String session, ClaimTx claimMoneyTx) throws IOException {
+	public void showClaimMoney(Parameters parameters, ClaimTx claimMoneyTx) throws IOException {
 		//TODO
-		String dir = getDir(BitcoinLotterySettings.claimSubdirectory, parameters, session);
+		String dir = getDir(BitcoinLotterySettings.claimSubdirectory, parameters);
 		writeln("Congratulation, you are the winner!");
 		writeln("The provided Compute transaction, secrets and created ClaimMoney transaction " +
 							"were save under the " + dir + " directory");
@@ -273,24 +272,9 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public void showWrongSecrets(Collection<Integer> collection) {
-		// TODO
-		writeln("The secrets you have provided are not correct");
-		write("The errors are on the positions: ");
-		Iterator<Integer> it = collection.iterator();
-		while (it.hasNext()) {
-			write(it.next()+1 + " ");
-		}
-		writeln("");
-		writeln("If you want to provide them again, press enter to continue.");		
-		writeln("Otherwise press Ctrl+c to exit.");
-		//TODO: wait for enter ?
-	}
-
-	@Override
-	public void showSecret(Parameters parameters, String session, byte[] secret) throws IOException {
+	public void showSecret(Parameters parameters, byte[] secret) throws IOException {
 		Command command = parameters.getCommand();
-		String dir = getDir(MemoryDumper.getSubdir(command), parameters, session);
+		String dir = getDir(MemoryDumper.getSubdir(command), parameters);
 		if (command == Command.OPEN) {
 			writeln("The provided Open transaction and its secret " +
 								"were save under the " + dir + " directory");
@@ -311,10 +295,10 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public void showCommitmentScheme(Parameters parameters, String session, LotteryTx commitTx,
+	public void showCommitmentScheme(Parameters parameters, LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException {
 		//TODO
-		String dir = getDir(BitcoinLotterySettings.lotterySubdirectory, parameters, session);
+		String dir = getDir(BitcoinLotterySettings.lotterySubdirectory, parameters);
 		writeln("The Commit transaction, Open transaction and partial PayDeposit transaction " +
 							"were save under the " + dir + " directory.");
 		writeln("The Commit transaction is (you should broadcast it now):");

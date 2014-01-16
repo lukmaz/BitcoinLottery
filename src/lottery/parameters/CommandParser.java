@@ -11,12 +11,12 @@ public class CommandParser {
 	public static class CommandArg {
 		public CommandArg(Command command, String dir, boolean testnet) {
 			this.command = command;
-			this.dir = dir;
+			this.root = dir;
 			this.testnet = testnet;
 		}
 		
 		public Command command;
-		public String dir;
+		public String root;
 		public boolean testnet;
 	}
 	

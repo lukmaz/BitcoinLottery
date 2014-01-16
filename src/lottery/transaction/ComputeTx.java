@@ -142,4 +142,14 @@ public class ComputeTx extends LotteryTx {
 		winner = (winner % getNoPlayers()) + 1;
 		return winner;
 	}
+
+	public int getMinLength() {
+		// TODO !!!
+		return 0;
+	}
+
+	public byte[] getPkHash(int winner) {
+		// TODO !!!
+		return null;
+	}
 }

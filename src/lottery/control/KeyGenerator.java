@@ -9,23 +9,22 @@ import lottery.parameters.IOHandler;
 import com.google.bitcoin.core.ECKey;
 
 public class KeyGenerator {
-	protected IOHandler parametersUpdater;
+	protected IOHandler ioHandler;
 	protected MemoryStorage memoryStorage;
-	protected String session;
+	protected Parameters parameters;
 	
 	
-	public KeyGenerator(IOHandler parametersUpdater, String session, 
+	public KeyGenerator(IOHandler ioHandler, Parameters parameters,
 			MemoryStorage memoryStorage) {
 		super();
-		this.parametersUpdater = parametersUpdater;
+		this.ioHandler = ioHandler;
 		this.memoryStorage = memoryStorage;
-		this.session = session;
+		this.parameters = parameters;
 	}
 
 	public void generateKeys() throws IOException {
-		Parameters parameters = parametersUpdater.getParameters();
 		ECKey key = new ECKey();
-		memoryStorage.saveKey(parameters, session, key);
-		parametersUpdater.showKey(parameters, session, key);
+		memoryStorage.saveKey(parameters, key);
+		ioHandler.showKey(parameters, key);
 	}
 }

@@ -10,17 +10,17 @@ import com.google.bitcoin.core.ECKey;
 
 public abstract class MemoryStorage {
 
-	public abstract void saveKey(Parameters parameters, String session, ECKey key) throws IOException;
+	public abstract void saveKey(Parameters parameters, ECKey key) throws IOException;
 
-	public abstract void saveSecrets(Parameters parameters, String session, List<byte[]> secrets) throws IOException;
+	public abstract void saveSecrets(Parameters parameters, List<byte[]> secrets) throws IOException;
 
-	public void saveSecrets(Parameters parameters, String session, byte[] secret) throws IOException {
+	public void saveSecret(Parameters parameters, byte[] secret) throws IOException {
 		List<byte[]> secrets = new LinkedList<byte[]>();
 		secrets.add(secret);
-		saveSecrets(parameters, session, secrets);
+		saveSecrets(parameters, secrets);
 	}
 
-	public abstract void saveTransaction(Parameters parameters, String session,
+	public abstract void saveTransaction(Parameters parameters,
 			LotteryTx tx) throws IOException;
 
 }

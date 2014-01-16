@@ -25,10 +25,10 @@ import com.google.bitcoin.core.Utils;
 public class MemoryDumper extends MemoryStorage {
 
 	@Override
-	public void saveKey(Parameters parameters, String session, ECKey key) throws IOException {
+	public void saveKey(Parameters parameters, ECKey key) throws IOException {
 		String subdir = BitcoinLotterySettings.keySubdirectory;
 		String chain = chainName(parameters.isTestnet());
-		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
 		File dir = LotteryUtils.getDir(pathParts);
 		File sk = new File(dir, BitcoinLotterySettings.skFilename);
 		File pk = new File(dir, BitcoinLotterySettings.pkFilename);
@@ -44,12 +44,12 @@ public class MemoryDumper extends MemoryStorage {
 	}
 
 	@Override
-	public void saveTransaction(Parameters parameters, String session, LotteryTx tx) throws IOException {
+	public void saveTransaction(Parameters parameters, LotteryTx tx) throws IOException {
 		String txFilename = getTxFilename(tx.getClass());
 		//TODO: extract below lines? where? 
 		String subdir = getSubdir(parameters.getCommand());
 		String chain = chainName(parameters.isTestnet());
-		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
 		File dir = LotteryUtils.getDir(pathParts);
 		File txFile = new File(dir, txFilename);
 		
@@ -94,11 +94,10 @@ public class MemoryDumper extends MemoryStorage {
 	}
 
 	@Override
-	public void saveSecrets(Parameters parameters, String session,
-			List<byte[]> secrets) throws IOException {
+	public void saveSecrets(Parameters parameters, List<byte[]> secrets) throws IOException {
 		String subdir = getSubdir(parameters.getCommand());
 		String chain = chainName(parameters.isTestnet());
-		String[] pathParts = {parameters.getRoot(), chain, subdir, session};
+		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
 		File dir = LotteryUtils.getDir(pathParts);
 		File secretsFile = new File(dir, BitcoinLotterySettings.secretsFilename);
 		

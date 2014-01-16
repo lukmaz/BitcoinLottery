@@ -1,28 +1,25 @@
 package lottery.control;
 
 import java.io.IOException;
-import java.util.Date;
 
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.IOHandler;
+import lottery.parameters.Parameters;
 
 public class Controller {
-
-	protected IOHandler parametersUpdater;
+	protected IOHandler ioHandler;
+	protected Parameters parameters;
 	protected MemoryStorage memoryStorage;
-	protected String session;
 		
-	public Controller(IOHandler parametersUpdater,
-			MemoryStorage memoryStorage) {
-		Long lDateTime = new Date().getTime();
-		this.parametersUpdater = parametersUpdater;
+	public Controller(IOHandler ioHandler, Parameters parameters, MemoryStorage memoryStorage) {
+		this.ioHandler = ioHandler;
+		this.parameters = parameters;
 		this.memoryStorage = memoryStorage;
-		this.session = lDateTime.toString(); 
 	}
 
 	public void run() {
 		try {
-			switch (parametersUpdater.getParameters().getCommand()) {
+			switch (parameters.getCommand()) {
 				case VERSION:
 					showVersion();
 					break;
@@ -30,16 +27,16 @@ public class Controller {
 					showHelp();
 					break;
 				case GENERATE_KEYS:
-					new KeyGenerator(parametersUpdater, session, memoryStorage).generateKeys();
+					new KeyGenerator(ioHandler, parameters, memoryStorage).generateKeys();
 					break;
 				case CLAIM_MONEY:
-					new MoneyClaimer(parametersUpdater, session, memoryStorage).claimMoney();
+					new MoneyClaimer(ioHandler, parameters, memoryStorage).claimMoney();
 					break;
 				case OPEN:
-					new OpenSecretPuller(parametersUpdater, session, memoryStorage).open();
+					new OpenSecretPuller(ioHandler, parameters, memoryStorage).open();
 					break;
 				case LOTTERY:
-					new Lottery(parametersUpdater, session, memoryStorage).lottery();
+					new Lottery(ioHandler, parameters, memoryStorage).lottery();
 					break;
 				default:
 					throw new RuntimeException("BitcoinLottery: Illegal command.");
@@ -51,10 +48,10 @@ public class Controller {
 	}
 
 	protected void showHelp() {
-		parametersUpdater.showHelp();
+		ioHandler.showHelp();
 	}
 
 	protected void showVersion() {
-		parametersUpdater.showVersion();
+		ioHandler.showVersion();
 	}
 }
