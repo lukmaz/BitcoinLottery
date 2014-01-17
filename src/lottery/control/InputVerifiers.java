@@ -18,9 +18,11 @@ import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.core.WrongNetworkException;
 
+import lottery.transaction.CommitTx;
 import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
+import lottery.transaction.PayDepositTx;
 
 
 public class InputVerifiers {
@@ -370,5 +372,45 @@ public class InputVerifiers {
 			counter++;
 			return secret;
 		}
+	}
+
+	public static class OthersCommitsVerifier implements GenericVerifier<CommitTx> {
+
+		public OthersCommitsVerifier(List<byte[]> pks, int position, int minLength, BigInteger deposit,
+				boolean testnet) {
+			// TODO !!!
+		}
+
+		public List<byte[]> getHashes() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public CommitTx verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+	}
+
+	public static class OthersPaysVerifier implements GenericVerifier<PayDepositTx> {
+
+		public OthersPaysVerifier(List<CommitTx> commits, ECKey sk, List<byte[]> pks, 
+						BigInteger fee, long timestamp, boolean testnet) {
+			// TODO !!!
+		}
+
+		public List<byte[]> getHashes() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public PayDepositTx verify(String input) throws WrongInputException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
 	}
 }

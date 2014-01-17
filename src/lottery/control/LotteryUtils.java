@@ -8,6 +8,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class LotteryUtils {
@@ -40,5 +42,11 @@ public class LotteryUtils {
 		}
 		SHA256.update(secret);
 		return SHA256.digest();
+	}
+	
+	public static <T> List<T> singleton(T elem) {
+		List<T> list = new LinkedList<T>();
+		list.add(elem);
+		return list;
 	}
 }

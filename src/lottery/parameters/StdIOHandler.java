@@ -14,6 +14,7 @@ import lottery.control.InputVerifiers.GenericVerifier;
 import lottery.parameters.Parameters.Command;
 import lottery.settings.BitcoinLotterySettings;
 import lottery.transaction.ClaimTx;
+import lottery.transaction.CommitTx;
 import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
@@ -172,6 +173,20 @@ public class StdIOHandler extends IOHandler {
 		
 		return secrets;
 	}
+
+	@Override
+	public List<CommitTx> askOthersCommits(int position,
+			GenericVerifier<CommitTx> verifier) throws IOException {
+		// TODO !!!
+		return null;
+	}
+
+	@Override
+	public List<PayDepositTx> askOthersPayDeposits(int position,
+			GenericVerifier<PayDepositTx> verifier) throws IOException {
+		// TODO !!!
+		return null;
+	}
 	
 	
 
@@ -254,9 +269,7 @@ public class StdIOHandler extends IOHandler {
 		//TODO: show winners pk
 		writeln("The winner is the player number " + winner);		
 		writeln("    (numerating starts with 1).");		
-		writeln("If you are the winner press enter to continue.");		
-		writeln("Otherwise press Ctrl+c to exit.");
-		//TODO: wait for enter ?
+		writeln("If you are not the winner press Ctrl+c to exit.");
 	}
 
 	@Override
@@ -314,4 +327,7 @@ public class StdIOHandler extends IOHandler {
 		}
 	}
 
+	public void showEndOfCommitmentPhase(Parameters parameters) {
+		//TODO !!!
+	}
 }

@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import lottery.control.InputVerifiers.OthersCommitsVerifier;
+import lottery.control.InputVerifiers.OthersPaysVerifier;
 import lottery.control.InputVerifiers.PkListVerifier;
 import lottery.control.InputVerifiers.TxOutputVerifier;
 import lottery.parameters.MemoryStorage;
@@ -33,6 +35,7 @@ public class Lottery {
 	protected long lockTime = 0;
 	protected int minLength = 0;
 	protected byte[] secret = null;
+	List<byte[]> hashes;
 	
 	
 	public Lottery(IOHandler ioHandler, Parameters parameters, MemoryStorage memoryStorage) {
@@ -86,7 +89,8 @@ public class Lottery {
 		memoryStorage.saveTransaction(parameters, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
 		long protocolStart = ioHandler.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
-		long payDepositTimestamp = protocolStart + 4 * lockTime * 60; //TODO 4? //TODO: notify
+		long payDepositTimestamp = protocolStart + lockTime * 60;
+		//TODO: notify payDepositTimestamp 
 		
 		for (int k = 0; k < noPlayers; ++k) {
 			if (k != position) {
@@ -95,18 +99,22 @@ public class Lottery {
 				memoryStorage.saveTransaction(parameters, payTx);
 			}
 			else {
-				payTxs.add(null); //TODO ?
-				//TODO: save empty line (?)
+				payTxs.add(null);
 			}
 		}
+		memoryStorage.saveTransactions(parameters, payTxs);
 		ioHandler.showCommitmentScheme(parameters, commitTx, openTx, payTxs);
-//		List<CommitTx> othersCommitTxs = ioHandler.askOtherCommits();
-//		List<PayDepositTx> othersPayTxs = ioHandler.askOtherCommits();
-		//TODO: ask for other players commits and payDeposits
-		//TODO: check them, extract hashes
-		//TODO: sign received payDeposits
-		//TODO: save everything and notify
-		// TODO 
+		OthersCommitsVerifier othersCommitsVerifier = 
+				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit, testnet);
+		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(position, othersCommitsVerifier);
+		memoryStorage.saveTransactions(parameters, othersCommitsTxs);
+		hashes = othersCommitsVerifier.getHashes();
+		hashes.set(position, hash);
+		OthersPaysVerifier othersPaysVerifier = 
+				new InputVerifiers.OthersPaysVerifier(othersCommitsTxs, sk, pks, fee, payDepositTimestamp, testnet);
+		List<PayDepositTx> othersPaysTxs = ioHandler.askOthersPayDeposits(position, othersPaysVerifier);
+		memoryStorage.saveTransactions(parameters, othersPaysTxs);	//TODO: !! use other filename
+		ioHandler.showEndOfCommitmentPhase(parameters);
 	}
 
 	protected long roundCurrentTime() {

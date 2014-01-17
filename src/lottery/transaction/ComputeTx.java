@@ -145,7 +145,7 @@ public class ComputeTx extends LotteryTx {
 
 	public int getMinLength() {
 		// TODO !!!
-		return 0;
+		return 32;
 	}
 
 	public byte[] getPkHash(int winner) {

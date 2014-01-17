@@ -11,6 +11,10 @@ public class BitcoinLotterySettings {
 	public static final String email = "--"; //TODO
 	public static final String homepage = "--"; //TODO
 	public static final String paper = "http://eprint.iacr.org/2013/784.pdf";
+	
+	public static final BigInteger defaultFee = Utils.toNanoCoins("0.0001");
+	public static final long defaultLockTimes = 60 * 6; //minutes
+	public static final int defaultMinLength = 32;
 
 	public static final String argDirPrefix = "--dir=";
 	public static final String argTestnet = "--testnet";
@@ -35,10 +39,6 @@ public class BitcoinLotterySettings {
 	public static final String txPutMoneyFilename = "putmoney.tx";
 	public static final String txComputeFilename = "compute.tx";
 	public static final String txClaimMoneyFilename = "claimmoney.tx";
-	public static final String secretsFilename = "secrets.tx";
-	
-	public static final BigInteger defaultFee = Utils.toNanoCoins("0.0001");
-	public static final long defaultLockTimes = 120; //minutes
-	public static final int defaultMinLength = 32;
+	public static final String secretsFilename = "secrets.txt";
 	
 }

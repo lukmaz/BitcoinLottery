@@ -24,38 +24,73 @@ import com.google.bitcoin.core.Utils;
 
 public class MemoryDumper extends MemoryStorage {
 
-	@Override
-	public void saveKey(Parameters parameters, ECKey key) throws IOException {
-		String subdir = BitcoinLotterySettings.keySubdirectory;
-		String chain = chainName(parameters.isTestnet());
-		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
-		File dir = LotteryUtils.getDir(pathParts);
-		File sk = new File(dir, BitcoinLotterySettings.skFilename);
-		File pk = new File(dir, BitcoinLotterySettings.pkFilename);
-		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
-		
-		PrintWriter skWriter = new PrintWriter(sk.getAbsolutePath());
-		skWriter.println(key.getPrivateKeyEncoded(params));
-		skWriter.close();
-		
-		PrintWriter pkWriter = new PrintWriter(pk.getAbsolutePath());
-		pkWriter.println(key.toAddress(params));
-		pkWriter.close();
+	protected abstract class Showable<T> {
+		public abstract String show(T val);
 	}
-
-	@Override
-	public void saveTransaction(Parameters parameters, LotteryTx tx) throws IOException {
-		String txFilename = getTxFilename(tx.getClass());
-		//TODO: extract below lines? where? 
+	
+	protected <T> T getNotEmptyElement(List<T> values) {
+		for (T value : values) {
+			if (value != null) {
+				return value;
+			}
+		}
+		throw new NullPointerException();
+	}
+	
+	protected <T> File saveValues(Parameters parameters, String filename, 
+					List<T> values, Showable<T> show) throws IOException {
+		if (values.size() > 1) {
+			filename = "listof" + filename; //TODO
+		}
 		String subdir = getSubdir(parameters.getCommand());
 		String chain = chainName(parameters.isTestnet());
 		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
 		File dir = LotteryUtils.getDir(pathParts);
-		File txFile = new File(dir, txFilename);
+		File file = new File(dir, filename);
 		
-		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(txFile.getAbsolutePath(), true)));
-		writer.println(Utils.bytesToHexString(tx.toRaw()));
+		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file.getAbsolutePath(), true)));
+		for (T value : values) {
+			if (show != null) {
+				writer.println(show.show(value));
+			}
+			else {
+				writer.println(value);
+			}
+		}
 		writer.close();
+		return file;
+	}
+
+	
+	@Override
+	public File[] saveKey(Parameters parameters, ECKey key) throws IOException {
+		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
+		File[] files = {saveValues(parameters, BitcoinLotterySettings.pkFilename, 
+							LotteryUtils.singleton(key.toAddress(params)), null),
+						saveValues(parameters, BitcoinLotterySettings.skFilename, 
+							LotteryUtils.singleton(key.getPrivateKeyEncoded(params)), null)};
+		return files;
+	}
+	
+	@Override
+	public <T extends LotteryTx> File saveTransactions(Parameters parameters, List<T> txs) throws IOException {
+		String filename = getTxFilename(getNotEmptyElement(txs).getClass());
+		return saveValues(parameters, filename, txs, 
+									new Showable<T>() {
+										@Override
+										public String show(T val) {
+											return Utils.bytesToHexString(val.toRaw());
+									}});
+	}
+	
+	@Override
+	public File saveSecrets(Parameters parameters, List<byte[]> secrets) throws IOException {
+		return saveValues(parameters, BitcoinLotterySettings.secretsFilename, secrets, 
+									new Showable<byte[]>() {
+										@Override
+										public String show(byte[] val) {
+											return Utils.bytesToHexString(val);
+									}});
 	}
 
 	protected String chainName(boolean testnet) {
@@ -71,6 +106,8 @@ public class MemoryDumper extends MemoryStorage {
 				return BitcoinLotterySettings.openSubdirectory;
 			case LOTTERY:
 				return BitcoinLotterySettings.lotterySubdirectory;
+			case GENERATE_KEYS:
+				return BitcoinLotterySettings.keySubdirectory;
 			default:
 				throw new RuntimeException("BitcoinLottery: Illegal command.");
 		}
@@ -91,20 +128,5 @@ public class MemoryDumper extends MemoryStorage {
 			return BitcoinLotterySettings.txPutMoneyFilename;
 		else
 			throw new RuntimeException("Illegal transaction type.");
-	}
-
-	@Override
-	public void saveSecrets(Parameters parameters, List<byte[]> secrets) throws IOException {
-		String subdir = getSubdir(parameters.getCommand());
-		String chain = chainName(parameters.isTestnet());
-		String[] pathParts = {parameters.getRoot(), chain, subdir, parameters.getSession()};
-		File dir = LotteryUtils.getDir(pathParts);
-		File secretsFile = new File(dir, BitcoinLotterySettings.secretsFilename);
-		
-		PrintWriter writer = new PrintWriter(secretsFile.getAbsolutePath());
-		for (byte[] s : secrets) {
-			writer.println(Utils.bytesToHexString(s));
-		}
-		writer.close();
 	}
 }

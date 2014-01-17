@@ -6,6 +6,7 @@ import java.util.List;
 
 import lottery.control.InputVerifiers.GenericVerifier;
 import lottery.transaction.ClaimTx;
+import lottery.transaction.CommitTx;
 import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
@@ -21,6 +22,10 @@ public abstract class IOHandler {
 	public abstract OpenTx askOpen(GenericVerifier<OpenTx> verifier) throws IOException;
 	public abstract TransactionOutput askOutput(BigInteger stake,
 						GenericVerifier<TransactionOutput> verifier) throws IOException;
+	public abstract List<CommitTx> askOthersCommits(int position,
+			GenericVerifier<CommitTx> verifier) throws IOException;
+	public abstract List<PayDepositTx> askOthersPayDeposits(int position,
+			GenericVerifier<PayDepositTx> verifier) throws IOException;
 
 	public abstract ECKey askSK(GenericVerifier<ECKey> verifier) throws IOException;
 	public abstract Address askAddress(GenericVerifier<Address> verifier) throws IOException;
@@ -56,5 +61,7 @@ public abstract class IOHandler {
 
 	public abstract void showCommitmentScheme(Parameters parameters, LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException;
+	
+	public abstract void showEndOfCommitmentPhase(Parameters parameters);
 
 }
