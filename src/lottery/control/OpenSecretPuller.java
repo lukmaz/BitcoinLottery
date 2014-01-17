@@ -1,5 +1,6 @@
 package lottery.control;
 
+import java.io.File;
 import java.io.IOException;
 
 import lottery.parameters.MemoryStorage;
@@ -25,7 +26,7 @@ public class OpenSecretPuller {
 		OpenTx openTx = ioHandler.askOpen(new InputVerifiers.OpenTxVerifier(parameters.isTestnet()));
 		memoryStorage.saveTransaction(parameters, openTx);
 		byte[] secret = openTx.getSecret();
-		memoryStorage.saveSecret(parameters, secret);
-		ioHandler.showSecret(parameters, secret);
+		File secretFile = memoryStorage.saveSecret(parameters, secret);
+		ioHandler.showSecret(secret, secretFile.getAbsolutePath());
 	}
 }

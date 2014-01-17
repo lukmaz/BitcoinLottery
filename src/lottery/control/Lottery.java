@@ -1,5 +1,6 @@
 package lottery.control;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
@@ -64,8 +65,8 @@ public class Lottery {
 		minLength = ioHandler.askMinLength(new InputVerifiers.MinLengthVerifier()).intValue();
 		secret = ioHandler.askSecret(minLength, noPlayers, new InputVerifiers.NewSecretVerifier(minLength, noPlayers));
 		
-		memoryStorage.saveSecret(parameters, secret);
-		ioHandler.showSecret(parameters, secret);
+		File secretFile = memoryStorage.saveSecret(parameters, secret);
+		ioHandler.showSecret(secret, secretFile.toString());
 	}
 
 	protected void depositPhase() throws IOException {
@@ -102,8 +103,8 @@ public class Lottery {
 				payTxs.add(null);
 			}
 		}
-		memoryStorage.saveTransactions(parameters, payTxs);
-		ioHandler.showCommitmentScheme(parameters, commitTx, openTx, payTxs);
+		File payTxsFile = memoryStorage.saveTransactions(parameters, payTxs);
+		ioHandler.showCommitmentScheme(commitTx, openTx, payTxs, payTxsFile.getParent());
 		OthersCommitsVerifier othersCommitsVerifier = 
 				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit, testnet);
 		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(position, othersCommitsVerifier);
@@ -114,7 +115,7 @@ public class Lottery {
 				new InputVerifiers.OthersPaysVerifier(othersCommitsTxs, sk, pks, fee, payDepositTimestamp, testnet);
 		List<PayDepositTx> othersPaysTxs = ioHandler.askOthersPayDeposits(position, othersPaysVerifier);
 		memoryStorage.saveTransactions(parameters, othersPaysTxs);	//TODO: !! use other filename
-		ioHandler.showEndOfCommitmentPhase(parameters);
+		ioHandler.showEndOfCommitmentPhase(parameters); //TODO ?
 	}
 
 	protected long roundCurrentTime() {

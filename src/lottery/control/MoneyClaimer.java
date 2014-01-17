@@ -1,5 +1,6 @@
 package lottery.control;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
@@ -59,7 +60,7 @@ public class MoneyClaimer {
 			e1.printStackTrace();
 			System.exit(1);
 		}
-		memoryStorage.saveTransaction(parameters, claimMoneyTx);
-		ioHandler.showClaimMoney(parameters, claimMoneyTx);
+		File claimMoneyFile = memoryStorage.saveTransaction(parameters, claimMoneyTx);
+		ioHandler.showClaimMoney(claimMoneyTx, claimMoneyFile.getParent());
 	}
 }

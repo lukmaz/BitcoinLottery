@@ -49,18 +49,19 @@ public abstract class IOHandler {
 	
 	public abstract void showVersion();
 
-	public abstract void showKey(Parameters parameters, ECKey key) throws IOException;
+	public abstract void showKey(ECKey key, String dir, boolean testnet) throws IOException;
 
 	public abstract void showWinner(int winner);
 
-	public abstract void showClaimMoney(Parameters parameters, ClaimTx claimMoneyTx)  throws IOException;
+	public abstract void showClaimMoney(ClaimTx claimMoneyTx, String file)  throws IOException;
 
-	public abstract void showSecret(Parameters parameters, byte[] secret) throws IOException;
+	public abstract void showOpenedSecret(byte[] secret, String file) throws IOException;
+	public abstract void showSecret(byte[] secret, String path) throws IOException;
 
 	public abstract void showHash(byte[] hash) throws IOException;
 
-	public abstract void showCommitmentScheme(Parameters parameters, LotteryTx commitTx,
-			OpenTx openTx, List<PayDepositTx> payTxs) throws IOException;
+	public abstract void showCommitmentScheme(LotteryTx commitTx,
+			OpenTx openTx, List<PayDepositTx> payTxs, String dir) throws IOException;
 	
 	public abstract void showEndOfCommitmentPhase(Parameters parameters);
 

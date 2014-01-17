@@ -1,5 +1,6 @@
 package lottery.control;
 
+import java.io.File;
 import java.io.IOException;
 
 import lottery.parameters.MemoryStorage;
@@ -24,7 +25,8 @@ public class KeyGenerator {
 
 	public void generateKeys() throws IOException {
 		ECKey key = new ECKey();
-		memoryStorage.saveKey(parameters, key);
-		ioHandler.showKey(parameters, key);
+		File[] keyFiles = memoryStorage.saveKey(parameters, key);
+		String dir = keyFiles[0].getParent();
+		ioHandler.showKey(key, dir, parameters.isTestnet());
 	}
 }
