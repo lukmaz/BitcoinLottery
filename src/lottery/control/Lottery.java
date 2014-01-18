@@ -107,15 +107,15 @@ public class Lottery {
 		ioHandler.showCommitmentScheme(commitTx, openTx, payTxs, payTxsFile.getParent());
 		OthersCommitsVerifier othersCommitsVerifier = 
 				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit, testnet);
-		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(position, othersCommitsVerifier);
+		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(noPlayers, position, othersCommitsVerifier);
 		memoryStorage.saveTransactions(parameters, othersCommitsTxs);
 		hashes = othersCommitsVerifier.getHashes();
 		hashes.set(position, hash);
 		OthersPaysVerifier othersPaysVerifier = 
-				new InputVerifiers.OthersPaysVerifier(othersCommitsTxs, sk, pks, fee, payDepositTimestamp, testnet);
-		List<PayDepositTx> othersPaysTxs = ioHandler.askOthersPayDeposits(position, othersPaysVerifier);
-		memoryStorage.saveTransactions(parameters, othersPaysTxs);	//TODO: !! use other filename
-		ioHandler.showEndOfCommitmentPhase(parameters); //TODO ?
+				new InputVerifiers.OthersPaysVerifier(othersCommitsTxs, sk, pks, position, fee, payDepositTimestamp, testnet);
+		List<PayDepositTx> othersPaysTxs = ioHandler.askOthersPayDeposits(noPlayers, position, othersPaysVerifier);
+		File othersPaysFile = memoryStorage.saveTransactions(parameters, othersPaysTxs);	//TODO: !! use other filename
+		ioHandler.showEndOfCommitmentPhase(othersPaysFile.getParent());
 	}
 
 	protected long roundCurrentTime() {

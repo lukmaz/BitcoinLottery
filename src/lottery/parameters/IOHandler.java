@@ -22,13 +22,13 @@ public abstract class IOHandler {
 	public abstract OpenTx askOpen(GenericVerifier<OpenTx> verifier) throws IOException;
 	public abstract TransactionOutput askOutput(BigInteger stake,
 						GenericVerifier<TransactionOutput> verifier) throws IOException;
-	public abstract List<CommitTx> askOthersCommits(int position,
+	public abstract List<CommitTx> askOthersCommits(int noPlayers, int position,
 			GenericVerifier<CommitTx> verifier) throws IOException;
-	public abstract List<PayDepositTx> askOthersPayDeposits(int position,
+	public abstract List<PayDepositTx> askOthersPayDeposits(int noPLayers, int position,
 			GenericVerifier<PayDepositTx> verifier) throws IOException;
 
 	public abstract ECKey askSK(GenericVerifier<ECKey> verifier) throws IOException;
-	public abstract Address askAddress(GenericVerifier<Address> verifier) throws IOException;
+	public abstract Address askAddress(Address defaultAddress, GenericVerifier<Address> verifier) throws IOException;
 
 	public abstract BigInteger askFee(GenericVerifier<BigInteger> verifier) throws IOException;
 	public abstract BigInteger askStake(GenericVerifier<BigInteger> verifier) throws IOException;
@@ -51,7 +51,7 @@ public abstract class IOHandler {
 
 	public abstract void showKey(ECKey key, String dir, boolean testnet) throws IOException;
 
-	public abstract void showWinner(int winner);
+	public abstract void showWinner(int winner, byte[] address);
 
 	public abstract void showClaimMoney(ClaimTx claimMoneyTx, String file)  throws IOException;
 
@@ -63,6 +63,6 @@ public abstract class IOHandler {
 	public abstract void showCommitmentScheme(LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs, String dir) throws IOException;
 	
-	public abstract void showEndOfCommitmentPhase(Parameters parameters);
+	public abstract void showEndOfCommitmentPhase(String dir);
 
 }

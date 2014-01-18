@@ -9,20 +9,21 @@ import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
+import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.script.Script;
 import com.google.bitcoin.script.ScriptBuilder;
 import com.google.bitcoin.script.ScriptOpCodes;
 
 public class CommitTx extends LotteryTx {
 	byte[] hash;
-	byte[] commitPk;
+	byte[] commiterPk;
 	int minLength;
 	int noPlayers;
 
 	public CommitTx(TransactionOutput out, ECKey sk, List<byte[]> pks, int position,
 			byte[] hash, int minLength, BigInteger fee, boolean testnet) throws ScriptException {
 		this.hash = hash;
-		this.commitPk = sk.getPubKey();
+		this.commiterPk = sk.getPubKey();
 		this.minLength = minLength;
 		this.noPlayers = pks.size();
 		NetworkParameters params = getNetworkParameters(testnet);
@@ -48,6 +49,56 @@ public class CommitTx extends LotteryTx {
 		}
 	}
 	
+	public CommitTx(byte[] rawTx, boolean testnet) throws VerificationException {
+		// TODO !!!
+		validateIsCommit();
+	}
+	
+	public int getNoPlayers() {
+		// TODO !!!
+		return 0;
+	}
+
+	public byte[] getHash() {
+		// TODO !!!
+		return null;
+	}
+
+	public byte[] getAddress(int k) {
+		// TODO !!!
+		return null;
+	}
+	
+	public BigInteger getSingleDeposit() {
+		// TODO !!!
+		return null;
+	}
+	
+	public int getEmptyOutputNr() {
+		// TODO !!!
+		return 0;
+	}
+	
+	public int getMinLength() {
+		// TODO !!!
+		return 0;
+	}
+	
+	public byte[] getCommiterPk() { //TODO: is it necessary
+		// TODO !!!
+		return null;
+	}
+	
+	protected void validateIsCommit() throws VerificationException {
+		//TODO !!!
+		//vout >= 2
+		//proper scripts
+		//same hashes
+		//same values, but one output with value 0 (it should have receiverPk == commiterPk (?))
+		//same comiterPk
+		//same minLength, proper MaxLength+1
+	}
+
 	protected Script getCommitOutScript(byte[] receiverPk) {
 		byte[] min = Utils.parseAsHexOrBase58(Integer.toHexString(minLength));
 		byte[] max = Utils.parseAsHexOrBase58(Integer.toHexString(minLength+noPlayers));
@@ -62,11 +113,11 @@ public class CommitTx extends LotteryTx {
 				.op(ScriptOpCodes.OP_EQUAL)
 				.op(ScriptOpCodes.OP_BOOLAND)
 				.op(ScriptOpCodes.OP_SWAP)
-				.data(receiverPk)			//TODO: only hash? !
+				.data(receiverPk)			//TODO: only hash !!?
 				.op(ScriptOpCodes.OP_CHECKSIG)
 				.op(ScriptOpCodes.OP_BOOLOR)
 				.op(ScriptOpCodes.OP_VERIFY)
-				.data(commitPk)
+				.data(commiterPk)
 				.op(ScriptOpCodes.OP_CHECKSIG)
 				.build();
 	}

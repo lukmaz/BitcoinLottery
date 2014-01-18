@@ -19,11 +19,13 @@ import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
 
 import com.google.bitcoin.core.Address;
+import com.google.bitcoin.core.Base58;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
 
+//TODO: create better messages
 public class StdIOHandler extends IOHandler {
 	protected BufferedReader reader;
 
@@ -97,9 +99,10 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public Address askAddress(GenericVerifier<Address> verifier) throws IOException {
+	public Address askAddress(Address defaultAddress, GenericVerifier<Address> verifier) throws IOException {
 		writeln("Enter the Bitcoin address to which the (potential) reward should be sent:");
-		return readObject(verifier, null);
+		writeln("To use address corresponding to the given secret key (" + defaultAddress + ") press enter");
+		return readObject(verifier, defaultAddress);
 	}
 
 	@Override
@@ -173,24 +176,45 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public List<CommitTx> askOthersCommits(int position,
+	public List<CommitTx> askOthersCommits(int noPlayers, int position,
 			GenericVerifier<CommitTx> verifier) throws IOException {
-		// TODO !!!
-		return null;
+		writeln("Enter the Commit transactions from other players:");
+		List<CommitTx> commitTxs = new LinkedList<CommitTx>();
+		for (int n = 0; n < noPlayers; ++n) {
+			if (n != position) {
+				writeln("   from player " + (n+1));
+				commitTxs.add(readObject(verifier, null));
+			}
+			else {
+				commitTxs.add(null);
+			}
+		}
+		
+		return commitTxs;
 	}
 
 	@Override
-	public List<PayDepositTx> askOthersPayDeposits(int position,
+	public List<PayDepositTx> askOthersPayDeposits(int noPlayers, int position,
 			GenericVerifier<PayDepositTx> verifier) throws IOException {
-		// TODO !!!
-		return null;
+		writeln("Enter the PayDeposit transactions from other players:");
+		List<PayDepositTx> payDepositTxs = new LinkedList<PayDepositTx>();
+		for (int n = 0; n < noPlayers; ++n) {
+			if (n != position) {
+				writeln("   from player " + (n+1));
+				payDepositTxs.add(readObject(verifier, null));
+			}
+			else {
+				payDepositTxs.add(null);
+			}
+		}
+		
+		return payDepositTxs;
 	}
 	
 	
 
 	@Override
 	public void showHelp() {
-		// TODO
 		StringBuilder usage = new StringBuilder();
 		char separator = '|';
 		usage.append("bitcoinlottery {")
@@ -235,7 +259,6 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showVersion() {
-		//TODO
 		writeln("BitcoinLottery protocol implementation");
 		writeln("version: " + BitcoinLotterySettings.version);
 		writeln("In this version all broadcasts and most of validations must be performed manually");
@@ -246,29 +269,27 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showKey(ECKey key, String dir, boolean testnet) throws IOException {
-		//TODO
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		writeln("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
 		writeln("They were saved under the " + dir + " directory");
-		writeln("The public key and the private key are:");
+		writeln("The public address and the private key are:");
 		writeln(key.toAddress(params).toString());
 		writeln(key.getPrivateKeyEncoded(params).toString());
 	}
 
 	@Override
-	public void showWinner(int winner) {
-		//TODO: show winners pk
-		writeln("The winner is the player number " + winner);		
+	public void showWinner(int winner, byte[] address) {
+		write("The winner is the player number " + winner + " "); 
+		writeln("(the one with address " + Base58.encode(address) + ")");		
 		writeln("    (numerating starts with 1).");		
 		writeln("If you are not the winner press Ctrl+c to exit.");
 	}
 
 	@Override
 	public void showClaimMoney(ClaimTx claimMoneyTx, String dir) throws IOException {
-		//TODO
 		writeln("Congratulation, you are the winner!");
-		writeln("The provided Compute transaction, secrets and created ClaimMoney transaction " +
-							"were save under the " + dir + " directory");
+		write("The provided Compute transaction, secrets and created ClaimMoney transaction ");
+		writeln("were save under the " + dir + " directory");
 		BigInteger reward = claimMoneyTx.getValue(0);
 		writeln("To get your reward (" + Utils.bitcoinValueToFriendlyString(reward) + " BTC), broadcast the transaction:");
 		writeln(Utils.bytesToHexString(claimMoneyTx.toRaw()));
@@ -276,8 +297,8 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showOpenedSecret(byte[] secret, String file) throws IOException {
-		writeln("The provided Open transaction and its secret " +
-							"were save in the " + file + " file");
+		write("The provided Open transaction and its secret ");
+		writeln("were save in the " + file + " file");
 		writeln("And the secret is:");
 		writeln(Utils.bytesToHexString(secret));
 	}
@@ -291,7 +312,6 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showHash(byte[] hash) throws IOException {
-		// TODO 
 		writeln("And the hash is:");
 		writeln(Utils.bytesToHexString(hash));
 	}
@@ -299,9 +319,8 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showCommitmentScheme(LotteryTx commitTx,
 			OpenTx openTx, List<PayDepositTx> payTxs, String dir) throws IOException {
-		//TODO
-		writeln("The Commit transaction, Open transaction and partial PayDeposit transaction " +
-							"were save under the " + dir + " directory.");
+		write("The Commit transaction, Open transaction and partial PayDeposit transaction ");
+		writeln("were save under the " + dir + " directory.");
 		writeln("The Commit transaction is (you should broadcast it now):");
 		writeln(Utils.bytesToHexString(commitTx.toRaw()));
 		writeln("The Open transaction is (you should not broadcast it before the Compute transaction is final):");
@@ -315,7 +334,9 @@ public class StdIOHandler extends IOHandler {
 		}
 	}
 
-	public void showEndOfCommitmentPhase(Parameters parameters) {
-		//TODO !!!
+	@Override
+	public void showEndOfCommitmentPhase(String dir) {
+		write("The provided Commit transactions and PayDeposit transactions ");
+		writeln("were saved under the " + dir + "directory.");
 	}
 }

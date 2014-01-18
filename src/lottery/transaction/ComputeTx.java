@@ -12,9 +12,10 @@ import java.util.ListIterator;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import com.google.bitcoin.core.AddressFormatException;
+import com.google.bitcoin.core.Base58;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
-import com.google.bitcoin.core.ProtocolException;
 import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.Utils;
@@ -34,7 +35,7 @@ public class ComputeTx extends LotteryTx {
 		throw new NotImplementedException();
 	}
 	
-	public ComputeTx(byte[] rawTx, boolean testnet) throws ProtocolException, VerificationException {
+	public ComputeTx(byte[] rawTx, boolean testnet) throws VerificationException {
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
 		validateIsCompute();
@@ -151,5 +152,14 @@ public class ComputeTx extends LotteryTx {
 	public byte[] getPkHash(int winner) {
 		// TODO !!!
 		return null;
+	}
+
+	public byte[] getAddress(int winner) {
+		// TODO !!!
+		try {
+			return Base58.decode("1M5MRn6hghaWAgCTqoJyR5FVjpcoLqUzBY");
+		} catch (AddressFormatException e) {
+			return null;
+		}
 	}
 }

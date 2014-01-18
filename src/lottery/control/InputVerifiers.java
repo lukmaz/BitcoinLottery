@@ -3,6 +3,7 @@ protected package lottery.control;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.bitcoin.core.Address;
@@ -26,7 +27,7 @@ import lottery.transaction.PayDepositTx;
 
 
 public class InputVerifiers {
-
+	
 	public static class WrongInputException extends Exception {
 		private static final long serialVersionUID = 1L;
 		public WrongInputException(String string) {
@@ -36,6 +37,14 @@ public class InputVerifiers {
 	
 	public static interface GenericVerifier<T> {
 		public T verify(String input) throws WrongInputException;
+	}
+
+	protected static byte[] parseHexString(String input) throws WrongInputException {
+		byte[] parsed = Utils.parseAsHexOrBase58(input);
+		if (parsed == null) {
+			throw new WrongInputException("Input is not a hex string.");
+		}
+		return parsed;
 	}
 	
 	protected static class BtcAmountVerifier implements GenericVerifier<BigInteger> {
@@ -182,10 +191,7 @@ public class InputVerifiers {
 				return sampleSecret();
 			}
 			else {
-				byte[] secret = Utils.parseAsHexOrBase58(input);
-				if (secret == null) {
-					throw new WrongInputException("Wrong format of the secret.");
-				}
+				byte[] secret = parseHexString(input);
 				if (secret.length < minLength) {
 					throw new WrongInputException("The secret is to short.");
 				}
@@ -224,10 +230,7 @@ public class InputVerifiers {
 		public TransactionOutput verify(String input) throws WrongInputException {
 			//TODO: online verify: exists, not spent ?
 			try {
-				byte[] rawTx = Utils.parseAsHexOrBase58(input);
-				if (rawTx == null) {
-					throw new WrongInputException("Wrong format of the transaction.");
-				}
+				byte[] rawTx = parseHexString(input);
 				Transaction tx = new Transaction(params, rawTx);
 				for (int k = 0; k < tx.getOutputs().size(); ++k) {
 					TransactionOutput out = tx.getOutput(k);
@@ -257,10 +260,7 @@ public class InputVerifiers {
 		}
 
 		public LotteryTx verify(String input) throws WrongInputException {
-			byte[] rawTx = Utils.parseAsHexOrBase58(input);
-			if (rawTx == null) {
-				throw new WrongInputException("Wrong format of the transaction.");
-			}
+			byte[] rawTx = parseHexString(input);
 			try {
 				if (txClass == OpenTx.class) {
 					return new OpenTx(rawTx, testnet);
@@ -356,10 +356,7 @@ public class InputVerifiers {
 			if (counter >= noPlayers) {
 				throw new WrongInputException("To many secrets.");
 			}
-			byte[] secret = Utils.parseAsHexOrBase58(input);
-			if (secret == null) {
-				throw new WrongInputException("Wrong format of the secret.");
-			}
+			byte[] secret = parseHexString(input);
 			if (secret.length < minLength) {
 				throw new WrongInputException("The secret is to short.");
 			}
@@ -375,42 +372,131 @@ public class InputVerifiers {
 	}
 
 	public static class OthersCommitsVerifier implements GenericVerifier<CommitTx> {
+		protected List<byte[]> pks;
+		protected int position;
+		protected int minLength;
+		protected BigInteger value;
+		protected boolean testnet;
+		protected List<byte[]> hashes;
+		protected int counter;
+		protected int noPlayers;
 
 		public OthersCommitsVerifier(List<byte[]> pks, int position, int minLength, BigInteger deposit,
 				boolean testnet) {
-			// TODO !!!
+			this.pks = pks;
+			this.noPlayers = pks.size();
+			this.position = position;
+			this.minLength = minLength;
+			this.value = deposit.divide(BigInteger.valueOf(noPlayers-1));
+			this.testnet = testnet;
+			this.hashes = new LinkedList<byte[]>();
+			this.counter = 0;
 		}
 
 		public List<byte[]> getHashes() {
-			// TODO Auto-generated method stub
-			return null;
+			return hashes;
 		}
 
 		@Override
 		public CommitTx verify(String input) throws WrongInputException {
-			// TODO Auto-generated method stub
-			return null;
+			if (counter == position) {
+				hashes.add(null);
+				counter++;
+			}
+			if (counter >= noPlayers) {
+				throw new WrongInputException("To many Commit transactions.");
+			}
+			
+			byte[] rawTx = parseHexString(input);
+			CommitTx commitTx;
+			try {
+				commitTx = new CommitTx(rawTx, testnet);
+			} catch (VerificationException e) {
+				throw new WrongInputException(e.getMessage());
+			}
+			if (commitTx.getNoPlayers() != noPlayers) {
+				throw new WrongInputException("Wrong number of outputs.");
+			}
+			for (int k = 0; k < noPlayers; ++k) {
+				if (!Arrays.equals(pks.get(k), commitTx.getAddress(k))) {	//TODO: pk or address !!?
+					throw new WrongInputException("Wrong addresses in outputs.");
+				}
+			}
+			if (commitTx.getSingleDeposit() != value) {
+				throw new WrongInputException("Wrong output's values.");
+			}
+			if (commitTx.getEmptyOutputNr() != counter) {
+				throw new WrongInputException("Wrong empty output.");
+			}
+			if (commitTx.getMinLength() != minLength) {
+				throw new WrongInputException("Wrong secret's minimal length.");
+			}
+			if (Arrays.equals(commitTx.getCommiterPk(), pks.get(counter))) {
+				throw new WrongInputException("Wrong commiter's public key.");
+			}
+			
+			hashes.add(commitTx.getHash());
+			counter++;
+			return commitTx;
 		}
 
 	}
 
 	public static class OthersPaysVerifier implements GenericVerifier<PayDepositTx> {
+		protected List<CommitTx> commits;
+		protected ECKey sk;
+		protected List<byte[]> pks;
+		protected int position;
+		protected BigInteger fee;
+		protected long timestamp;
+		protected boolean testnet;
+		protected int counter;
+		protected int noPlayers;
 
-		public OthersPaysVerifier(List<CommitTx> commits, ECKey sk, List<byte[]> pks, 
+		public OthersPaysVerifier(List<CommitTx> commits, ECKey sk, List<byte[]> pks, int position,
 						BigInteger fee, long timestamp, boolean testnet) {
-			// TODO !!!
-		}
-
-		public List<byte[]> getHashes() {
-			// TODO Auto-generated method stub
-			return null;
+			this.commits = commits;
+			this.sk = sk;
+			this.pks = pks;
+			this.noPlayers = pks.size();
+			this.position = position;
+			this.fee = fee;
+			this.timestamp = timestamp;
+			this.testnet = testnet;
+			this.counter = 0;
 		}
 
 		@Override
 		public PayDepositTx verify(String input) throws WrongInputException {
-			// TODO Auto-generated method stub
-			return null;
+			if (counter == position) {
+				counter++;
+			}
+			if (counter >= noPlayers) {
+				throw new WrongInputException("To many Commit transactions.");
+			}
+			
+			PayDepositTx payTx;
+			TransactionOutput out = commits.get(counter).getOutput(position);
+			byte[] rawTx = parseHexString(input);
+			try {
+				payTx = new PayDepositTx(rawTx, out, sk, testnet);
+			} catch (VerificationException e) {
+				throw new WrongInputException(e.getMessage());
+			}
+			if (!payTx.getValue(0).equals(out.getValue().subtract(fee))) {
+				throw new WrongInputException("Wrong fee of the transaction.");
+			}
+			if (payTx.getTimeLock() != timestamp) {
+				throw new WrongInputException("Wrong timelock of the transaction.");
+			}
+			try {
+				if (!Arrays.equals(payTx.getOutput(0).getScriptPubKey().getPubKeyHash(), sk.getPubKeyHash())) {
+					throw new WrongInputException("Wrong receipent of the transaction.");
+				}
+			} catch (ScriptException e) {
+				//do nothing -- can not happen
+			}
+			return payTx;
 		}
-
 	}
 }

@@ -8,6 +8,7 @@ import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
+import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.script.ScriptBuilder;
 
 public class PayDepositTx extends LotteryTx {
@@ -24,6 +25,29 @@ public class PayDepositTx extends LotteryTx {
 											.build());
 		tx.getInput(0).setSequenceNumber(0);
 		tx.addOutput(out.getValue(), new Address(params, Utils.sha256hash160(pk)));
+	}
+
+	public PayDepositTx(byte[] rawTx, TransactionOutput out, ECKey sk, boolean testnet) throws VerificationException {
+		// TODO !!!
+		//parse
+		//add signature and data("00")
+		validateIsPayDeposit();
+	}
+	
+	public long getTimeLock() {
+		// TODO !!!
+		return 0;
+	}
+
+	protected void validateIsPayDeposit() throws VerificationException {
+		// TODO !!!
+		//spends out
+		//vin == vout == 1
+		//proper outscript (pay-to-pkhash)
+		//have timelock, 
+		//same values, but one output with value 0 (it should have receiverPk == commiterPk (?))
+		//same comiterPk
+		//same minLength, proper MaxLength+1
 	}
 
 }
