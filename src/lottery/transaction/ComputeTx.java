@@ -162,4 +162,10 @@ public class ComputeTx extends LotteryTx {
 			return null;
 		}
 	}
+
+	public List<byte[]> getSignatures() {
+		// TODO !!!
+		return null;
+	}
+	
 }

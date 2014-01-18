@@ -39,7 +39,7 @@ public class MoneyClaimer {
 		List<byte[]> hashes = computeTx.getSecretsHashes();
 		int minLength = computeTx.getMinLength();
 		List<byte[]> secrets = ioHandler.askSecrets(hashes, 
-				new InputVerifiers.SecretListVerifier(hashes, minLength));
+				new InputVerifiers.SecretListVerifier(null, hashes, minLength, testnet));
 		memoryStorage.saveSecrets(parameters, secrets);
 		
 		int winner = 0;
@@ -56,7 +56,7 @@ public class MoneyClaimer {
 		ECKey sk = ioHandler.askSK(new InputVerifiers.SkVerifier(pkHash, testnet));
 		Address address = ioHandler.askAddress(sk.toAddress(params), new InputVerifiers.AddressVerifier(testnet));
 		BigInteger fee = ioHandler.askFee(new InputVerifiers.FeeVerifier(computeTx.getValue(0)));
-		ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, parameters.isTestnet());
+		ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, testnet);
 		try {
 			claimMoneyTx.addSecrets(secrets);
 			claimMoneyTx.setSignature(sk);

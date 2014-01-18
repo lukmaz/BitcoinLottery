@@ -10,18 +10,25 @@ import java.util.List;
 import lottery.control.InputVerifiers.OthersCommitsVerifier;
 import lottery.control.InputVerifiers.OthersPaysVerifier;
 import lottery.control.InputVerifiers.PkListVerifier;
+import lottery.control.InputVerifiers.SignaturesVerifier;
 import lottery.control.InputVerifiers.TxOutputVerifier;
 import lottery.parameters.MemoryStorage;
 import lottery.parameters.Parameters;
 import lottery.parameters.IOHandler;
+import lottery.transaction.ClaimTx;
 import lottery.transaction.CommitTx;
+import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
+import lottery.transaction.PutMoneyTx;
 
+import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
+import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.TransactionOutput;
+import com.google.bitcoin.core.VerificationException;
 
 public class Lottery {
 	protected Parameters parameters;
@@ -36,7 +43,8 @@ public class Lottery {
 	protected long lockTime = 0;
 	protected int minLength = 0;
 	protected byte[] secret = null;
-	List<byte[]> hashes;
+	protected ComputeTx computeTx = null;
+	protected List<byte[]> hashes;
 	
 	
 	public Lottery(IOHandler ioHandler, Parameters parameters, MemoryStorage memoryStorage) {
@@ -123,9 +131,61 @@ public class Lottery {
 		return seconds - (seconds % (60 * 5));
 	}
 
-	protected void executionPhase() {
+	protected void executionPhase() throws IOException {
 		//TODO: notify phase
-		// TODO
+		boolean testnet = parameters.isTestnet();
+		List<PutMoneyTx> putMoneyTxs = ioHandler.askPutMoney(noPlayers, stake, 
+				new InputVerifiers.PutMoneyVerifier(pks, stake, testnet));
+		memoryStorage.saveTransactions(parameters, putMoneyTxs);
+		computeTx = new ComputeTx(putMoneyTxs, hashes, minLength, fee, testnet);
+		byte[] computeSig = null;
+		try {
+			computeSig = computeTx.addSignature(position, sk);
+		} catch (VerificationException e) {
+			// TODO should not happen
+			e.printStackTrace();
+		}
+
+		if (position == 0) {
+			SignaturesVerifier sigVerifier = new InputVerifiers.SignaturesVerifier(computeTx);
+			ioHandler.askSignatures(noPlayers, position, sigVerifier);
+			ioHandler.showCompute(computeTx);
+		}
+		else {
+			ioHandler.showSignature(computeSig);
+			computeTx = ioHandler.askCompute(new InputVerifiers.SignedComputeTxVerifier(computeTx, pks, testnet));
+		}
+		memoryStorage.saveTransaction(parameters, computeTx);
+	}
+	
+	protected void claimMoneyPhase() throws IOException { //TODO: extract common part with MoneyClaimer ?
+		boolean testnet = parameters.isTestnet();
+		List<byte[]> secrets = ioHandler.askSecretsOrOpens(noPlayers, position, 
+				new InputVerifiers.SecretListVerifier(position, hashes, minLength, testnet));
+		secrets.set(position, secret);
+		memoryStorage.saveSecrets(parameters, secrets);
 		
+		int winner = 0;
+		try {
+			winner = computeTx.getWinner(secrets);
+		} catch (VerificationException e1) {// can not happen
+			e1.printStackTrace();
+		}
+		if (winner == position) {
+			ioHandler.showWin();
+			NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
+			Address address = ioHandler.askAddress(sk.toAddress(params), new InputVerifiers.AddressVerifier(testnet));
+			ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, testnet);
+			try {
+				claimMoneyTx.addSecrets(secrets);
+				claimMoneyTx.setSignature(sk);
+			} catch (VerificationException e1) {// can not happen
+			}
+			File claimMoneyFile = memoryStorage.saveTransaction(parameters, claimMoneyTx);
+			ioHandler.showClaimMoney(claimMoneyTx, claimMoneyFile.getParent());
+		}
+		else {
+			ioHandler.showLost(winner, computeTx.getAddress(winner));
+		}
 	}
 }

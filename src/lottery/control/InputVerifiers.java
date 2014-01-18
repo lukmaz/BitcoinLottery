@@ -24,6 +24,7 @@ import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
+import lottery.transaction.PutMoneyTx;
 
 
 public class InputVerifiers {
@@ -340,23 +341,22 @@ public class InputVerifiers {
 	
 	public static class SecretListVerifier implements GenericVerifier<byte[]> {
 		protected List<byte[]> hashes;
+		protected Integer position;
 		protected int minLength;
+		protected boolean testnet;
 		protected int noPlayers;
 		protected int counter;
 		
-		public SecretListVerifier(List<byte[]> hashes, int minLength) {
+		public SecretListVerifier(Integer position, List<byte[]> hashes, int minLength, boolean testnet) {
 			this.hashes = hashes;
+			this.position = position;
 			this.minLength = minLength;
+			this.testnet = testnet;
 			this.noPlayers = hashes.size();
 			this.counter = 0;
 		}
 
-		@Override
-		public byte[] verify(String input) throws WrongInputException {
-			if (counter >= noPlayers) {
-				throw new WrongInputException("To many secrets.");
-			}
-			byte[] secret = parseHexString(input);
+		protected void verifySecret(byte[] secret) throws WrongInputException {
 			if (secret.length < minLength) {
 				throw new WrongInputException("The secret is to short.");
 			}
@@ -366,8 +366,36 @@ public class InputVerifiers {
 			else if (!Arrays.equals(LotteryUtils.calcHash(secret), hashes.get(counter))) {
 				throw new WrongInputException("The secret does not match the hash.");
 			}
+		}
+		
+		@Override
+		public byte[] verify(String input) throws WrongInputException {
+			if (position != null && position == counter) {
+				counter++;
+			}
+			if (counter >= noPlayers) {
+				throw new WrongInputException("To many secrets.");
+			}
+			byte[] hex = parseHexString(input);
+			byte[] secret;
+			try {
+				OpenTx openTx = new OpenTx(hex, testnet);
+				secret = openTx.getSecret();
+				verifySecret(secret);
+			} catch (VerificationException e) {
+				verifySecret(hex);
+				secret = hex;
+			} catch (WrongInputException e) {
+				try {
+					verifySecret(hex);
+					secret = hex;
+				} catch (WrongInputException e2) {
+					throw new WrongInputException("The secret in open transaction is wrong: " + e.getMessage());
+				}
+			}
+
 			counter++;
-			return secret;
+			return hex;
 		}
 	}
 
@@ -496,7 +524,95 @@ public class InputVerifiers {
 			} catch (ScriptException e) {
 				//do nothing -- can not happen
 			}
+			counter++;
 			return payTx;
+		}
+	}
+	
+	
+	
+	public static class PutMoneyVerifier implements GenericVerifier<PutMoneyTx> {
+		protected List<byte[]> pks;
+		protected int noPlayers;
+		protected BigInteger stake;
+		protected boolean testnet;
+		protected int counter;
+		
+		PutMoneyVerifier(List<byte[]> pks, BigInteger stake, boolean testnet) {
+			this.pks = pks;
+			this.noPlayers = pks.size();
+			this.stake = stake;
+			this.testnet = testnet;
+		}
+
+		@Override
+		public PutMoneyTx verify(String input) throws WrongInputException {
+			if (counter >= noPlayers) {
+				throw new WrongInputException("To many Commit transactions.");
+			}
+			byte[] rawTx = parseHexString(input);
+			PutMoneyTx putMoneyTx = new PutMoneyTx(rawTx, pks.get(counter), stake);
+			
+			counter++;
+			return putMoneyTx;
+		}
+	}
+	
+	public static class SignaturesVerifier implements GenericVerifier<byte[]> {
+		protected ComputeTx computeTx;
+		protected int noPlayers;
+		protected int counter;
+
+		public SignaturesVerifier(ComputeTx computeTx) {
+			this.computeTx = computeTx;
+			this.noPlayers = computeTx.getNoPlayers();
+			this.counter = 0;
+		}
+
+		@Override
+		public byte[] verify(String input) throws WrongInputException {
+			if (counter >= noPlayers) {
+				throw new WrongInputException("To many signatures.");
+			}
+			byte[] sig = parseHexString(input);
+			try {
+				computeTx.addSignature(counter, sig);
+			} catch (VerificationException e) {
+				throw new WrongInputException("Wrong signature.");
+			}
+			counter++;
+			return sig;
+		}
+		
+	}
+	
+	public static class SignedComputeTxVerifier extends TxVerifier implements GenericVerifier<ComputeTx> {
+		protected ComputeTx computeTx;
+		protected List<byte[]> pks;
+		protected int noPlayers;
+		
+		public SignedComputeTxVerifier(ComputeTx computeTx, List<byte[]> pks, boolean testnet) {
+			super(ComputeTx.class, testnet);
+			this.computeTx = computeTx;
+			this.pks = pks;
+			noPlayers = pks.size();
+		}
+
+		@Override
+		public ComputeTx verify(String input) throws WrongInputException {
+			ComputeTx tx = (ComputeTx) super.verify(input);
+			if (tx.getNoPlayers() != noPlayers) {
+				throw new WrongInputException("Wrong number of inputs.");
+			}
+			List<byte[]> signatures = tx.getSignatures();
+			for (int k = 0; k < noPlayers; ++k) {
+				try {
+					computeTx.addSignature(k, signatures.get(k));
+				} catch (VerificationException e) {
+					throw new WrongInputException("Transaction tampered or wrong signatures.");
+				}
+			}
+			return computeTx;
 		}
 	}
 }

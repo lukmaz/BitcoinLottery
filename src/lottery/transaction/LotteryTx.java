@@ -33,14 +33,14 @@ public abstract class LotteryTx{
 		return testnet ? TestNet3Params.get() : MainNetParams.get();
 	}
 	
-	public TransactionSignature sign(int vin, ECKey key) {
+	protected TransactionSignature sign(int vin, ECKey key) {
 		Sha256Hash sighash = tx.hashForSignature(vin, tx.getInput(vin).getConnectedOutput().getScriptBytes(), 
 				Transaction.SigHash.ALL, false);
 		ECDSASignature sig = key.sign(sighash);
 		return new TransactionSignature(sig, Transaction.SigHash.ALL, false);
 	}
 	
-	public TransactionSignature sign(int vin, byte[] signature) {
+	protected TransactionSignature sign(int vin, byte[] signature) {
 		ECDSASignature sig = ECDSASignature.decodeFromDER(signature);
 		return new TransactionSignature(sig, Transaction.SigHash.ALL, false);
 	}

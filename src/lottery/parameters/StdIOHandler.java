@@ -17,6 +17,7 @@ import lottery.transaction.ComputeTx;
 import lottery.transaction.LotteryTx;
 import lottery.transaction.OpenTx;
 import lottery.transaction.PayDepositTx;
+import lottery.transaction.PutMoneyTx;
 
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.Base58;
@@ -100,7 +101,7 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public Address askAddress(Address defaultAddress, GenericVerifier<Address> verifier) throws IOException {
-		writeln("Enter the Bitcoin address to which the (potential) reward should be sent:");
+		writeln("Enter the Bitcoin address to which the reward should be sent:");
 		writeln("To use address corresponding to the given secret key (" + defaultAddress + ") press enter");
 		return readObject(verifier, defaultAddress);
 	}
@@ -165,7 +166,7 @@ public class StdIOHandler extends IOHandler {
 	
 	@Override
 	public List<byte[]> askSecrets(List<byte[]> secretsHahses, GenericVerifier<byte[]> verifier) throws IOException {
-		writeln("Enter the secrets corresponding for the following hashes:");
+		writeln("Enter the secrets (or Open transaction containing them) corresponding for the following hashes:");
 		List<byte[]> secrets = new LinkedList<byte[]>();
 		for (int n = 0; n < secretsHahses.size(); ++n) {
 			writeln("   for hash " + Utils.bytesToHexString(secretsHahses.get(n)));
@@ -210,6 +211,54 @@ public class StdIOHandler extends IOHandler {
 		
 		return payDepositTxs;
 	}
+	
+	@Override
+	public List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
+			GenericVerifier<PutMoneyTx> verifier) throws IOException {
+		writeln("Enter the PayDeposit transactions from other players:");
+		List<PutMoneyTx> putMoneyTxs = new LinkedList<PutMoneyTx>();
+		for (int n = 0; n < noPlayers; ++n) {
+			writeln("   from player " + (n+1));
+			putMoneyTxs.add(readObject(verifier, null));
+		}
+		
+		return putMoneyTxs;
+	}
+
+	@Override
+	public List<byte[]> askSignatures(int noPlayers, int position,
+			GenericVerifier<byte[]> verifier) throws IOException {
+		writeln("Enter the signatures on Compute transaction from other players:");
+		List<byte[]> signatures = new LinkedList<byte[]>();
+		for (int n = 0; n < noPlayers; ++n) {
+			if (n != position) {
+				writeln("   from player " + (n+1));
+				signatures.add(readObject(verifier, null));
+			}
+			else {
+				signatures.add(null);
+			}
+		}
+		return signatures;
+	}
+
+	@Override
+	public List<byte[]> askSecretsOrOpens(int noPlayers, int position,
+			GenericVerifier<byte[]> verifier) throws IOException {
+		writeln("Enter the Open transactions or secrets from other players:");
+		List<byte[]> secrets = new LinkedList<byte[]>();
+		for (int n = 0; n < noPlayers; ++n) {
+			if (n != position) {
+				writeln("   from player " + (n+1));
+				secrets.add(readObject(verifier, null));
+			}
+			else {
+				secrets.add(null);
+			}
+		}
+		return secrets;
+	}
+
 	
 	
 
@@ -287,8 +336,7 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showClaimMoney(ClaimTx claimMoneyTx, String dir) throws IOException {
-		writeln("Congratulation, you are the winner!");
-		write("The provided Compute transaction, secrets and created ClaimMoney transaction ");
+		write("The Compute transaction, secrets and created ClaimMoney transaction ");
 		writeln("were save under the " + dir + " directory");
 		BigInteger reward = claimMoneyTx.getValue(0);
 		writeln("To get your reward (" + Utils.bitcoinValueToFriendlyString(reward) + " BTC), broadcast the transaction:");
@@ -338,5 +386,31 @@ public class StdIOHandler extends IOHandler {
 	public void showEndOfCommitmentPhase(String dir) {
 		write("The provided Commit transactions and PayDeposit transactions ");
 		writeln("were saved under the " + dir + "directory.");
+	}
+
+	@Override
+	public void showCompute(ComputeTx computeTx) {
+		writeln("The completed Compute transaction is:");
+		writeln(Utils.bytesToHexString(computeTx.toRaw()));
+		writeln("You should broadcast it and send it to other players.");
+	}
+
+	@Override
+	public void showSignature(byte[] sig) {
+		writeln("Your signature on the Compute transaction is:");
+		writeln(Utils.bytesToHexString(sig));
+		writeln("You should send it to player nr 1");
+	}
+
+	@Override
+	public void showLost(int winner, byte[] address) {
+		writeln("Unfortunately, you have lost");
+		write("The winner is the player nr " + winner + " ");
+		writeln("the one with address " + Utils.bytesToHexString(address));
+	}
+
+	@Override
+	public void showWin() {
+		writeln("Congratulation, you are the winner!");		
 	}
 }

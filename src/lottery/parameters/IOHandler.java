@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import lottery.control.InputVerifiers.GenericVerifier;
+import lottery.transaction.PutMoneyTx;
 import lottery.transaction.ClaimTx;
 import lottery.transaction.CommitTx;
 import lottery.transaction.ComputeTx;
@@ -39,11 +40,19 @@ public abstract class IOHandler {
 	public abstract Long askMinLength(GenericVerifier<Long> verifier) throws IOException;
 	
 	public abstract byte[] askSecret(int minLength, int noPlayers, GenericVerifier<byte[]> verifier) throws IOException;
+	public abstract List<byte[]> askSecretsOrOpens(int noPlayers, int position, 
+			GenericVerifier<byte[]> verifier) throws IOException;
 	
 	public abstract Long askNoPlayers(GenericVerifier<Long> verifier) throws IOException;
 	public abstract List<byte[]> askPks(int noPlayers, GenericVerifier<byte[]> verifier) throws IOException;
 	public abstract List<byte[]> askSecrets(List<byte[]> hashes, GenericVerifier<byte[]> verifier) throws IOException;
 
+	public abstract List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
+			GenericVerifier<PutMoneyTx> verifier) throws IOException;
+	
+	public abstract List<byte[]> askSignatures(int noPlayers, int position,
+			GenericVerifier<byte[]> verifier) throws IOException;
+	
 
 	public abstract void showHelp();
 	
@@ -64,5 +73,11 @@ public abstract class IOHandler {
 			OpenTx openTx, List<PayDepositTx> payTxs, String dir) throws IOException;
 	
 	public abstract void showEndOfCommitmentPhase(String dir);
+	
+	public abstract void showCompute(ComputeTx computeTx);
+	
+	public abstract void showSignature(byte[] sig);
 
+	public abstract void showWin();
+	public abstract void showLost(int winner, byte[] address);
 }
