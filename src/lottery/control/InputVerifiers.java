@@ -169,7 +169,7 @@ public class InputVerifiers {
 	
 	public static class MinLengthVerifier extends NumberVerifier {
 		public MinLengthVerifier() {
-			super(0, 512, "min length");
+			super(0, 127, "min length");
 		}
     }
 	
@@ -459,7 +459,7 @@ public class InputVerifiers {
 			if (commitTx.getMinLength() != minLength) {
 				throw new WrongInputException("Wrong secret's minimal length.");
 			}
-			if (Arrays.equals(commitTx.getCommiterPk(), pks.get(counter))) {
+			if (Arrays.equals(commitTx.getCommiterAddress(), pks.get(counter))) {
 				throw new WrongInputException("Wrong commiter's public key.");
 			}
 			

@@ -1,11 +1,11 @@
 package lottery.transaction;
 
 import java.math.BigInteger;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
-import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
@@ -15,30 +15,34 @@ import com.google.bitcoin.script.ScriptBuilder;
 import com.google.bitcoin.script.ScriptOpCodes;
 
 public class CommitTx extends LotteryTx {
-	byte[] hash;
-	byte[] commiterPk;
-	int minLength;
-	int noPlayers;
+	protected byte[] hash;
+	protected byte[] commiterAddress;
+	protected List<byte[]> addresses;
+	protected int minLength;
+	protected BigInteger stake; 
+	protected int noPlayers;
+	protected int position;
 
 	public CommitTx(TransactionOutput out, ECKey sk, List<byte[]> pks, int position,
-			byte[] hash, int minLength, BigInteger fee, boolean testnet) throws ScriptException {
+			byte[] hash, int minLength, BigInteger fee, boolean testnet) throws VerificationException {
 		this.hash = hash;
-		this.commiterPk = sk.getPubKey();
+		this.commiterAddress = sk.getPubKeyHash();
 		this.minLength = minLength;
 		this.noPlayers = pks.size();
+		this.position = position;
 		NetworkParameters params = getNetworkParameters(testnet);
-		BigInteger stake = out.getValue().subtract(fee).divide(BigInteger.valueOf(noPlayers-1));
+		stake = out.getValue().subtract(fee).divide(BigInteger.valueOf(noPlayers-1));
 		
 		tx = new Transaction(params);
-		tx.addInput(out); //TODO: validate !
+		tx.addInput(out); //TODO: validate !!
 		if (out.getScriptPubKey().isSentToAddress()) {
 			tx.getInput(0).setScriptSig(ScriptBuilder.createInputScript(sign(0, sk), sk));
 		}
-		else if (out.getScriptPubKey().isSentToAddress()) {
+		else if (out.getScriptPubKey().isSentToRawPubKey()) {
 			tx.getInput(0).setScriptSig(ScriptBuilder.createInputScript(sign(0, sk)));
 		} 
 		else {
-			throw new RuntimeException("bad TransactionOutput!"); //TODO
+			throw new VerificationException("Bad transaction output.");
 		}
 		for (int k = 0; k < noPlayers; ++k) {
 			BigInteger currentStake = stake;
@@ -47,50 +51,63 @@ public class CommitTx extends LotteryTx {
 			}
 			tx.addOutput(currentStake, getCommitOutScript(pks.get(k)));
 		}
+		this.addresses = new LinkedList<byte[]>();
+		for (byte[] pk : pks) {
+			this.addresses.add(Utils.sha256hash160(pk));
+		}
 	}
 	
 	public CommitTx(byte[] rawTx, boolean testnet) throws VerificationException {
-		// TODO !!!
+		tx = new Transaction(getNetworkParameters(testnet));
 		validateIsCommit();
 	}
 	
 	public int getNoPlayers() {
-		// TODO !!!
-		return 0;
+		return noPlayers;
 	}
 
 	public byte[] getHash() {
-		// TODO !!!
-		return null;
+		return hash;
 	}
 
 	public byte[] getAddress(int k) {
-		// TODO !!!
-		return null;
+		return addresses.get(k);
 	}
 	
 	public BigInteger getSingleDeposit() {
-		// TODO !!!
-		return null;
+		return stake;
 	}
 	
 	public int getEmptyOutputNr() {
-		// TODO !!!
-		return 0;
+		return position;
 	}
 	
 	public int getMinLength() {
-		// TODO !!!
-		return 0;
+		return minLength;
 	}
 	
-	public byte[] getCommiterPk() { //TODO: is it necessary
-		// TODO !!!
-		return null;
+	public byte[] getCommiterAddress() {
+		return commiterAddress;
 	}
 	
 	protected void validateIsCommit() throws VerificationException {
 		//TODO !!!
+
+		noPlayers = tx.getOutputs().size();
+		addresses = new LinkedList<byte[]>();
+		
+		for (int k = 0; k < noPlayers; ++k) {
+			if (tx.getOutput(k).getValue().equals(BigInteger.valueOf(0))) {
+				position = k;
+			}
+			else {
+				stake = tx.getOutput(k).getValue();
+			}
+			addresses.add(tx.getOutput(k).getScriptPubKey().getChunks().get(13).data);
+		}
+		minLength = Integer.valueOf(Utils.bytesToHexString(tx.getOutput(0).getScriptPubKey().getChunks().get(1).data), 16);
+		hash = tx.getOutput(0).getScriptPubKey().getChunks().get(6).data;
+		commiterAddress = tx.getOutput(0).getScriptPubKey().getChunks().get(20).data;
 		//vout >= 2
 		//proper scripts
 		//same hashes
@@ -112,12 +129,19 @@ public class CommitTx extends LotteryTx {
 				.data(hash)
 				.op(ScriptOpCodes.OP_EQUAL)
 				.op(ScriptOpCodes.OP_BOOLAND)
-				.op(ScriptOpCodes.OP_SWAP)
-				.data(receiverPk)			//TODO: only hash !!?
+				.op(ScriptOpCodes.OP_ROT)
+				.op(ScriptOpCodes.OP_ROT)
+				.op(ScriptOpCodes.OP_DUP)
+				.op(ScriptOpCodes.OP_HASH160)
+				.data(Utils.sha256hash160(receiverPk))
+				.op(ScriptOpCodes.OP_EQUALVERIFY)
 				.op(ScriptOpCodes.OP_CHECKSIG)
 				.op(ScriptOpCodes.OP_BOOLOR)
 				.op(ScriptOpCodes.OP_VERIFY)
-				.data(commiterPk)
+				.op(ScriptOpCodes.OP_DUP)
+				.op(ScriptOpCodes.OP_HASH160)
+				.data(commiterAddress)
+				.op(ScriptOpCodes.OP_EQUALVERIFY)
 				.op(ScriptOpCodes.OP_CHECKSIG)
 				.build();
 	}

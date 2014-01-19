@@ -1,66 +1,135 @@
 package lottery.transaction;
 
 import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import lottery.control.LotteryUtils;
 
-import com.google.bitcoin.core.AddressFormatException;
-import com.google.bitcoin.core.Base58;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
+import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
 import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.script.Script;
+import com.google.bitcoin.script.ScriptBuilder;
 import com.google.bitcoin.script.ScriptChunk;
 import com.google.bitcoin.script.ScriptOpCodes;
 
 public class ComputeTx extends LotteryTx {
 	protected List<byte[]> hashes;
-	protected boolean complete = false;
+	protected List<byte[]> pks;
+	protected List<byte[]> signatures;
+	protected int noPlayers;
 	protected int minLength;
 		
-	public ComputeTx(List<PutMoneyTx> inputs, List<byte[]> hashes, int minLength, BigInteger fee, boolean testnet) {
-		//TODO: create !!!
-		complete = false;
-		throw new NotImplementedException();
+	public ComputeTx(List<PutMoneyTx> inputs, List<byte[]> pks, List<byte[]> hashes, 
+										int minLength, BigInteger fee, boolean testnet) {
+		this.pks = pks;
+		this.hashes = hashes;
+		this.minLength = minLength;
+		this.noPlayers = inputs.size();
+		tx = new Transaction(getNetworkParameters(testnet));
+		BigInteger stake = BigInteger.valueOf(0);
+		for (int k = 0; k < noPlayers; ++k) {
+			TransactionOutput in = inputs.get(k).getOutput(inputs.get(k).getOutNr()); 
+			tx.addInput(in);
+			stake.add(in.getValue());
+		}
+		tx.addOutput(stake.subtract(fee), calculateOutScript(pks, hashes, minLength));
+		signatures = new LinkedList<byte[]>();
+		for (int k = 0; k < noPlayers; ++k) {
+			signatures.add(null);
+		}
 	}
-	
+
 	public ComputeTx(byte[] rawTx, boolean testnet) throws VerificationException {
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
 		validateIsCompute();
-		computeSecretsHashes();
 		computeMinLength();
-	}
-
-	public byte[] addSignature(int n, byte[] signature) throws VerificationException {
-		//TODO pull to superclass?
-		return null;
-		//TODO !!!
-	}
-
-	public byte[] addSignature(int n, ECKey sk) throws VerificationException {
-		//TODO pull to superclass?
-		return null;
-		//TODO !!!
+		computeSecretsHashes();
+		computeAddresses();
+		computeSignatures();
 	}
 	
-	public boolean isComplete() {
-		//TODO pull to superclass?
-		return complete;
+	protected Script calculateOutScript(List<byte[]> pks, List<byte[]> hashes, int minLength) {
+		ScriptBuilder sb = new ScriptBuilder();
+		sb.smallNum(0);
+		byte[] dataMinLength = {(byte) minLength};
+		byte[] dataNoPlayers = {(byte) noPlayers};
+		for (int k = noPlayers-1; k >= 0; --k) {
+			sb.op(ScriptOpCodes.OP_SWAP)
+			  .op(ScriptOpCodes.OP_SIZE)
+			  .data(dataMinLength)
+			  .op(ScriptOpCodes.OP_SUB)
+			  .op(ScriptOpCodes.OP_TUCK)
+			  .smallNum(0)
+			  .data(dataNoPlayers)
+			  .op(ScriptOpCodes.OP_WITHIN)
+			  .op(ScriptOpCodes.OP_VERIFY)
+			  .op(ScriptOpCodes.OP_SHA256) //TODO
+			  .data(hashes.get(k))
+			  .op(ScriptOpCodes.OP_EQUALVERIFY)
+			  .op(ScriptOpCodes.OP_ADD);
+			if (k < noPlayers-1) {
+				sb.op(ScriptOpCodes.OP_DUP)
+				  .data(dataNoPlayers)
+				  .op(ScriptOpCodes.OP_GREATERTHANOREQUAL)
+				  .op(ScriptOpCodes.OP_IF)
+				  .data(dataNoPlayers)
+				  .op(ScriptOpCodes.OP_SUB)
+				  .op(ScriptOpCodes.OP_ENDIF);
+			}
+		}
+		for (int k = noPlayers-1; k >= 0; --k) {
+			sb.data(pks.get(k));
+		}
+		sb.data(dataNoPlayers);
+		sb.op(ScriptOpCodes.OP_ROLL);
+		sb.op(ScriptOpCodes.OP_ROLL);
+		sb.data(dataNoPlayers);
+		sb.op(ScriptOpCodes.OP_ROLL);
+		sb.op(ScriptOpCodes.OP_DUP);
+		sb.op(ScriptOpCodes.OP_HASH160);
+		sb.op(ScriptOpCodes.OP_ROT);
+		sb.op(ScriptOpCodes.OP_EQUALVERIFY);
+		sb.data(dataNoPlayers);
+		sb.op(ScriptOpCodes.OP_ROLL);
+		sb.op(ScriptOpCodes.OP_SWAP);
+		sb.op(ScriptOpCodes.OP_CHECKSIG);
+		return sb.build();
+	}
+
+	public byte[] addSignature(int k, byte[] signature) throws VerificationException {
+		tx.getInput(k).setScriptSig(new ScriptBuilder()
+												.data(signature)
+												.data(pks.get(k))
+												.build());
+		tx.getInput(k).verify(tx.getInput(k).getConnectedOutput());	//TODO: !! ok?
+		signatures.set(k, signature);
+		return signature;
+	}
+
+	public byte[] addSignature(int k, ECKey sk) throws VerificationException {
+		if (!Arrays.equals(sk.getPubKey(), pks.get(k))) {
+			throw new VerificationException("Secret key does not correspond to the provided public key.");
+		}	
+		byte[] signature = sign(k, sk).encodeToBitcoin();
+		tx.getInput(k).setScriptSig(new ScriptBuilder()
+												.data(signature)
+												.data(sk.getPubKey())
+												.build());
+		signatures.set(k, signature);
+		return signature;
 	}
 	
-	protected void validateIsCompute() throws VerificationException { //TODO: different exception
+	protected void validateIsCompute() throws VerificationException {
 		if (tx.isCoinBase() ||
 				tx.isTimeLocked() ||
 				tx.getInputs().size() < 2 ||
@@ -68,18 +137,23 @@ public class ComputeTx extends LotteryTx {
 			throw new VerificationException("Not a Compute transaction");
 		}
 		tx.verify();
-		complete = true;
-		//TODO: make it better (check scripts, signatures, and everything)
+		//TODO: !!! make it better (check scripts, signatures, and everything)
 	}
 
-	public int getNoPlayers() {
-		return tx.getInputs().size();
+	protected void computeAddresses() throws ScriptException {
+		pks = new LinkedList<byte[]>();
+		for (int k = 0; k < noPlayers; ++k) {
+			pks.add(tx.getInput(k).getScriptSig().getChunks().get(1).data);
+		}
+	}
+
+	protected void computeSignatures() throws ScriptException {
+		signatures = new LinkedList<byte[]>();
+		for (int k = 0; k < noPlayers; ++k) {
+			signatures.add(tx.getInput(k).getScriptSig().getChunks().get(0).data);
+		}
 	}
 	
-	public List<byte[]> getSecretsHashes() {
-		return new LinkedList<byte[]> (hashes);
-	}
-
 	protected void computeSecretsHashes() throws ScriptException {
 		Script outScript = tx.getOutput(0).getScriptPubKey();
 		hashes = new LinkedList<byte[]>();
@@ -90,6 +164,7 @@ public class ComputeTx extends LotteryTx {
 				hashes.add(it.next().data);
 			}
 		}
+		Collections.reverse(hashes); //TODO !! ok?
 	}
 	
 	protected void computeMinLength() throws ScriptException {
@@ -97,38 +172,38 @@ public class ComputeTx extends LotteryTx {
 		List<ScriptChunk> chunks = outScript.getChunks();
 		ListIterator<ScriptChunk> it = chunks.listIterator();
 		while(it.hasNext()) {
-			if (it.next().equalsOpCode(ScriptOpCodes.OP_NIP)) {
+			if (it.next().equalsOpCode(ScriptOpCodes.OP_SIZE)) { //TODO !! ok?
 				minLength = Integer.parseInt(Utils.bytesToHexString(it.next().data), 16);
 				break;
 			}
 		}
 	}
 
-	public Collection<Integer> findBadSecrets(List<byte[]> secrets) {
+	public boolean checkSecrets(List<byte[]> secrets) {
 		if (hashes == null || secrets == null || hashes.size() != secrets.size()) {
-			return null;
+			return false;
 		}
-		Collection<Integer> errors = new HashSet<Integer>();
 		
 		for (int n = 0; n < secrets.size(); ++n) {
-			byte[] sha256 = null;
-			try {
-				sha256 = MessageDigest.getInstance("SHA-256").digest(secrets.get(n));
-			} catch (NoSuchAlgorithmException e) {
-				// TODO
-				e.printStackTrace();
+			byte[] secret = secrets.get(n);
+			byte[] sha256 = LotteryUtils.calcHash(secret);
+			if (!Arrays.equals(sha256, hashes.get(n))) {
+				return false;
 			}
-			if (!Arrays.equals(sha256, hashes.get(n))) { //TODO!!! or length is not in [min, min+n)
-				errors.add(n);
+			else if (secret.length < minLength || secret.length >= minLength + noPlayers) {
+				return false;
 			}
 		}
 		
-		return errors;
+		return true;
+	}
+
+	public int getNoPlayers() {
+		return tx.getInputs().size();
 	}
 	
-	public boolean checkSecrets(List<byte[]> secrets) {
-		Collection<Integer> errors = findBadSecrets(secrets);
-		return errors != null && errors.size() == 0;
+	public List<byte[]> getSecretsHashes() {
+		return new LinkedList<byte[]> (hashes);
 	}
 
 	//winner \in [0, noPlayers-1]
@@ -140,33 +215,20 @@ public class ComputeTx extends LotteryTx {
 		for (byte[] secret : secrets) {
 			winner += secret.length - minLength;
 		}
-		//TODO is it working? !!!
+		//TODO is it working? !!
 		winner = (winner % getNoPlayers());
 		return winner;
 	}
 
 	public int getMinLength() {
-		// TODO !!!
-		return 32;
+		return minLength;
 	}
 
-	public byte[] getPkHash(int winner) {
-		// TODO !!!
-		return null;
-	}
-
-	public byte[] getAddress(int winner) {
-		// TODO !!!
-		try {
-			return Base58.decode("1M5MRn6hghaWAgCTqoJyR5FVjpcoLqUzBY");
-		} catch (AddressFormatException e) {
-			return null;
-		}
+	public byte[] getAddress(int k) {
+		return Utils.sha256hash160(pks.get(k));
 	}
 
 	public List<byte[]> getSignatures() {
-		// TODO !!!
-		return null;
+		return signatures;
 	}
-	
 }

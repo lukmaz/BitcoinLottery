@@ -51,7 +51,7 @@ public class MoneyClaimer {
 			e1.printStackTrace();
 		}
 		ioHandler.showWinner(winner, winersAddress);
-		byte[] pkHash = computeTx.getPkHash(winner);
+		byte[] pkHash = computeTx.getAddress(winner);
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		ECKey sk = ioHandler.askSK(new InputVerifiers.SkVerifier(pkHash, testnet));
 		Address address = ioHandler.askAddress(sk.toAddress(params), new InputVerifiers.AddressVerifier(testnet));

@@ -26,9 +26,7 @@ public class ClaimTx extends LotteryTx {
 				TransactionSignature signature)  throws VerificationException {
 		ScriptBuilder scriptBuilder = new ScriptBuilder();
 		int winner = computeTx.getWinner(secrets);
-		for (byte[] secret : secrets) {
-			scriptBuilder.data(secret);
-		}
+		//TODO !!! ?
 		for (int k = 0; k < secrets.size(); ++k) {
 			if (k == winner) {
 				scriptBuilder.data(signature.encodeToBitcoin());
@@ -36,6 +34,9 @@ public class ClaimTx extends LotteryTx {
 			else {
 				scriptBuilder.data(emptyData);
 			}
+		}
+		for (byte[] secret : secrets) {
+			scriptBuilder.data(secret);
 		}
 		tx.getInput(0).setScriptSig(scriptBuilder.build());
 		tx.getInput(0).verify(computeTx.getOutput(0));

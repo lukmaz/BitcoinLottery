@@ -26,7 +26,6 @@ import lottery.transaction.PutMoneyTx;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
-import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.VerificationException;
 
@@ -90,12 +89,12 @@ public class Lottery {
 		LotteryTx commitTx = null;
 		try {
 			commitTx = new CommitTx(txOutput, sk, pks, position, hash, minLength, fee, testnet);
-		} catch (ScriptException e) {
-			// TODO 
+		} catch (VerificationException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		memoryStorage.saveTransaction(parameters, commitTx);
-		OpenTx openTx = new OpenTx(commitTx, sk, sk.toAddress(params), secret, fee, testnet);
+		OpenTx openTx = new OpenTx(commitTx, sk, pks, sk.toAddress(params), secret, fee, testnet);
 		memoryStorage.saveTransaction(parameters, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
 		long protocolStart = ioHandler.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
@@ -138,7 +137,7 @@ public class Lottery {
 		List<PutMoneyTx> putMoneyTxs = ioHandler.askPutMoney(noPlayers, stake, 
 				new InputVerifiers.PutMoneyVerifier(pks, stake, testnet));
 		memoryStorage.saveTransactions(parameters, putMoneyTxs);
-		computeTx = new ComputeTx(putMoneyTxs, hashes, minLength, fee, testnet);
+		computeTx = new ComputeTx(putMoneyTxs, pks, hashes, minLength, fee, testnet);
 		byte[] computeSig = null;
 		try {
 			computeSig = computeTx.addSignature(position, sk);

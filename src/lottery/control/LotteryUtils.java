@@ -32,7 +32,7 @@ public class LotteryUtils {
 		return dir;
 	}
 	
-	static byte[] calcHash(byte[] secret) {
+	public static byte[] calcHash(byte[] secret) {
 		MessageDigest SHA256 = null; 
 		try {
 			SHA256 = MessageDigest.getInstance("SHA-256"); //TODO: global settings for hash function

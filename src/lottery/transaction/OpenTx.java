@@ -25,7 +25,7 @@ public class OpenTx extends LotteryTx {
 		computeSecret();
 	}
 
-	public OpenTx(LotteryTx commitTx, ECKey sk, Address address, byte[] secret, BigInteger fee, boolean testnet) {
+	public OpenTx(LotteryTx commitTx, ECKey sk, List<byte[]> pks, Address address, byte[] secret, BigInteger fee, boolean testnet) {
 		BigInteger value = new BigInteger("0");
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
@@ -38,7 +38,7 @@ public class OpenTx extends LotteryTx {
 												.data(sign(k, sk).encodeToBitcoin())
 												.data(sk.getPubKey())
 												.data(emptyData)
-												.data(emptyData)
+												.data(pks.get(k))
 												.data(secret)
 												.build());
 		}
