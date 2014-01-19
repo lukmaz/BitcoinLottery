@@ -18,7 +18,7 @@ import com.google.bitcoin.params.TestNet3Params;
 
 public abstract class LotteryTx{
 	protected Transaction tx;
-	protected static final byte[] emptySignature = Utils.parseAsHexOrBase58("01"); //TODO: do something with warning
+	protected static final byte[] emptyData = Utils.parseAsHexOrBase58("01"); //TODO: do something with warning
 	
 	@Override
 	public String toString() {

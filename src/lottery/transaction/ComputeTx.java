@@ -131,6 +131,7 @@ public class ComputeTx extends LotteryTx {
 		return errors != null && errors.size() == 0;
 	}
 
+	//winner \in [0, noPlayers-1]
 	public int getWinner(List<byte[]> secrets) throws VerificationException {
 		if (!checkSecrets(secrets)) {
 			throw new VerificationException("Wrong secrets");
@@ -140,7 +141,7 @@ public class ComputeTx extends LotteryTx {
 			winner += secret.length - minLength;
 		}
 		//TODO is it working? !!!
-		winner = (winner % getNoPlayers()) + 1;
+		winner = (winner % getNoPlayers());
 		return winner;
 	}
 

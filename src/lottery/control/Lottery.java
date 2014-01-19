@@ -80,6 +80,7 @@ public class Lottery {
 	protected void depositPhase() throws IOException {
 		//TODO: notify phase
 		boolean testnet = parameters.isTestnet();
+		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		byte[] hash = LotteryUtils.calcHash(secret);
 		ioHandler.showHash(hash); //TODO: save it?
 		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1));
@@ -94,7 +95,7 @@ public class Lottery {
 			e.printStackTrace();
 		}
 		memoryStorage.saveTransaction(parameters, commitTx);
-		OpenTx openTx = new OpenTx(commitTx, sk, secret, fee, testnet);
+		OpenTx openTx = new OpenTx(commitTx, sk, sk.toAddress(params), secret, fee, testnet);
 		memoryStorage.saveTransaction(parameters, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
 		long protocolStart = ioHandler.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
@@ -175,11 +176,11 @@ public class Lottery {
 			ioHandler.showWin();
 			NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 			Address address = ioHandler.askAddress(sk.toAddress(params), new InputVerifiers.AddressVerifier(testnet));
-			ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, testnet);
+			ClaimTx claimMoneyTx = null;
 			try {
-				claimMoneyTx.addSecrets(secrets);
-				claimMoneyTx.setSignature(sk);
-			} catch (VerificationException e1) {// can not happen
+				claimMoneyTx = new ClaimTx(computeTx, secrets, sk, address, fee, testnet);
+			} catch (VerificationException e) {// can not happen
+				e.printStackTrace();
 			}
 			File claimMoneyFile = memoryStorage.saveTransaction(parameters, claimMoneyTx);
 			ioHandler.showClaimMoney(claimMoneyTx, claimMoneyFile.getParent());

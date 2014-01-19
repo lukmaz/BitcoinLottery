@@ -551,8 +551,14 @@ public class InputVerifiers {
 				throw new WrongInputException("To many Commit transactions.");
 			}
 			byte[] rawTx = parseHexString(input);
-			PutMoneyTx putMoneyTx = new PutMoneyTx(rawTx, pks.get(counter), stake);
-			
+			PutMoneyTx putMoneyTx;
+			try {
+				putMoneyTx = new PutMoneyTx(rawTx, Utils.sha256hash160(pks.get(counter)), stake, testnet);
+			} catch (ProtocolException e) {
+				throw new WrongInputException("Wrong format of the transaction.");
+			} catch (VerificationException e) {
+				throw new WrongInputException(e.getMessage());
+			}
 			counter++;
 			return putMoneyTx;
 		}

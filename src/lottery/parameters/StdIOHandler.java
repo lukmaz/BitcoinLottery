@@ -328,7 +328,7 @@ public class StdIOHandler extends IOHandler {
 
 	@Override
 	public void showWinner(int winner, byte[] address) {
-		write("The winner is the player number " + winner + " "); 
+		write("The winner is the player number " + (winner+1) + " "); 
 		writeln("(the one with address " + Base58.encode(address) + ")");		
 		writeln("    (numerating starts with 1).");		
 		writeln("If you are not the winner press Ctrl+c to exit.");
@@ -405,7 +405,7 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showLost(int winner, byte[] address) {
 		writeln("Unfortunately, you have lost");
-		write("The winner is the player nr " + winner + " ");
+		write("The winner is the player nr " + (winner+1) + " ");
 		writeln("the one with address " + Utils.bytesToHexString(address));
 	}
 

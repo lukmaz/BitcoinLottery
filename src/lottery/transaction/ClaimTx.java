@@ -12,69 +12,32 @@ import com.google.bitcoin.script.ScriptBuilder;
 
 
 public class ClaimTx extends LotteryTx {
-	protected boolean complete;
-	protected ComputeTx computeTx;
-	protected TransactionSignature signature = null;
-	protected List<byte[]> secrets = null;
 		
-	public ClaimTx(ComputeTx computeTx, Address address, BigInteger fee, boolean testnet) {
-		this.computeTx = computeTx;
+	public ClaimTx(ComputeTx computeTx, List<byte[]> secrets, ECKey sk, 
+						Address address, BigInteger fee, boolean testnet) throws VerificationException {
 		tx = new Transaction(getNetworkParameters(testnet));
 		tx.addInput(computeTx.getOutput(0));
 		tx.addOutput(computeTx.getValue(0).subtract(fee), address);
-		complete = false;
+		TransactionSignature signature = sign(0, sk);
+		completeInScript(computeTx, secrets, signature);
 	}
 	
-	
-	public byte[] setSignature(byte[] signature) throws VerificationException {
-		this.signature = sign(0, signature);
-		tryComplete();
-		return signature;
-	}
-
-	public TransactionSignature setSignature(ECKey sk) throws VerificationException {
-		signature = sign(0, sk);
-		tryComplete();
-		return signature;
-	}
-	
-	public boolean isComplete() {
-		return complete;
-	}
-	
-	public void addSecrets(List<byte[]> secrets) throws VerificationException {
-		if (!computeTx.checkSecrets(secrets)) {
-			throw new VerificationException("wrong secrets");
+	protected void completeInScript(ComputeTx computeTx, List<byte[]> secrets, 
+				TransactionSignature signature)  throws VerificationException {
+		ScriptBuilder scriptBuilder = new ScriptBuilder();
+		int winner = computeTx.getWinner(secrets);
+		for (byte[] secret : secrets) {
+			scriptBuilder.data(secret);
 		}
-		this.secrets = secrets;
-		tryComplete();
-	}
-	
-	protected boolean tryComplete()  throws VerificationException {
-		if (signature != null && secrets != null) {
-			ScriptBuilder scriptBuilder = new ScriptBuilder();
-			for (byte[] secret : secrets) {
-				scriptBuilder.data(secret);
+		for (int k = 0; k < secrets.size(); ++k) {
+			if (k == winner) {
+				scriptBuilder.data(signature.encodeToBitcoin());
 			}
-			int winner = computeTx.getWinner(secrets);
-			for (int n = 1; n <= secrets.size(); ++n) {
-				if (n == winner) {
-					scriptBuilder.data(signature.encodeToBitcoin());
-				}
-				else {
-					scriptBuilder.data(emptySignature);
-				}
+			else {
+				scriptBuilder.data(emptyData);
 			}
-			tx.getInput(0).setScriptSig(scriptBuilder.build());
-			try {
-				tx.getInput(0).verify(computeTx.getOutput(0));
-			} catch (VerificationException e) {
-				tx.getInput(0).setScriptSig(new ScriptBuilder().build());
-				throw e;
-			}
-			complete = true;
-			return true;
 		}
-		return false;
+		tx.getInput(0).setScriptSig(scriptBuilder.build());
+		tx.getInput(0).verify(computeTx.getOutput(0));
 	}
 }

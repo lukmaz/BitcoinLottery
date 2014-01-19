@@ -56,14 +56,11 @@ public class MoneyClaimer {
 		ECKey sk = ioHandler.askSK(new InputVerifiers.SkVerifier(pkHash, testnet));
 		Address address = ioHandler.askAddress(sk.toAddress(params), new InputVerifiers.AddressVerifier(testnet));
 		BigInteger fee = ioHandler.askFee(new InputVerifiers.FeeVerifier(computeTx.getValue(0)));
-		ClaimTx claimMoneyTx = new ClaimTx(computeTx, address, fee, testnet);
+		ClaimTx claimMoneyTx = null;
 		try {
-			claimMoneyTx.addSecrets(secrets);
-			claimMoneyTx.setSignature(sk);
-		} catch (VerificationException e1) {
-			// TODO 
-			e1.printStackTrace();
-			System.exit(1);
+			claimMoneyTx = new ClaimTx(computeTx, secrets, sk, address, fee, testnet);
+		} catch (VerificationException e) {// can not happen
+			e.printStackTrace();
 		}
 		File claimMoneyFile = memoryStorage.saveTransaction(parameters, claimMoneyTx);
 		ioHandler.showClaimMoney(claimMoneyTx, claimMoneyFile.getParent());

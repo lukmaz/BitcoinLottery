@@ -3,6 +3,7 @@ package lottery.transaction;
 import java.math.BigInteger;
 import java.util.List;
 
+import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.ScriptException;
@@ -14,7 +15,8 @@ import com.google.bitcoin.script.ScriptBuilder;
 import com.google.bitcoin.script.ScriptChunk;
 
 public class OpenTx extends LotteryTx {
-	protected byte[] secret;
+	protected byte[] secret = null;
+	protected final int SECRET_POSITION = 4;
 
 	public OpenTx(byte[] rawTx, boolean testnet) throws VerificationException {
 		NetworkParameters params = getNetworkParameters(testnet);
@@ -23,7 +25,7 @@ public class OpenTx extends LotteryTx {
 		computeSecret();
 	}
 
-	public OpenTx(LotteryTx commitTx, ECKey sk, byte[] secret, BigInteger fee, boolean testnet) {
+	public OpenTx(LotteryTx commitTx, ECKey sk, Address address, byte[] secret, BigInteger fee, boolean testnet) {
 		BigInteger value = new BigInteger("0");
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
@@ -34,17 +36,19 @@ public class OpenTx extends LotteryTx {
 			tx.addInput(out);
 			tx.getInput(k).setScriptSig(new ScriptBuilder()
 												.data(sign(k, sk).encodeToBitcoin())
-												.data(emptySignature)
+												.data(sk.getPubKey())
+												.data(emptyData)
+												.data(emptyData)
 												.data(secret)
 												.build());
 		}
-		tx.addOutput(value.subtract(fee), sk.toAddress(params));
+		tx.addOutput(value.subtract(fee), address);
 	}
 
 	protected void computeSecret() throws ScriptException {
 		Script outScript = tx.getInput(0).getScriptSig();
 		List<ScriptChunk> chunks = outScript.getChunks();
-		secret = chunks.get(2).data;
+		secret = chunks.get(SECRET_POSITION).data;
 	}
 
 	protected void validateIsOpen() throws VerificationException {
@@ -52,11 +56,11 @@ public class OpenTx extends LotteryTx {
 		verify(!tx.isTimeLocked());
 		verify(tx.getOutputs().size() == 1);
 		
-		//TODO 
+		//TODO !!!
 	}
 	
 	public byte[] getSecret() {
-		return secret.clone();
+		return secret;
 	}
 
 }
