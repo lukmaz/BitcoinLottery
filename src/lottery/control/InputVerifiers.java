@@ -1,4 +1,4 @@
-protected package lottery.control;
+package lottery.control;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
