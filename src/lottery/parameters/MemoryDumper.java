@@ -50,7 +50,10 @@ public class MemoryDumper extends MemoryStorage {
 		
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file.getAbsolutePath(), true)));
 		for (T value : values) {
-			if (show != null) {
+			if (value == null) {
+				writer.println("");
+			}
+			else if (show != null) {
 				writer.println(show.show(value));
 			}
 			else {

@@ -216,7 +216,7 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
 			GenericVerifier<PutMoneyTx> verifier) throws IOException {
-		writeln("Enter the PayDeposit transactions from other players:");
+		writeln("Enter the PutMoney transactions from other players:");
 		List<PutMoneyTx> putMoneyTxs = new LinkedList<PutMoneyTx>();
 		for (int n = 0; n < noPlayers; ++n) {
 			writeln("   from player " + (n+1));
@@ -387,7 +387,7 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showEndOfCommitmentPhase(String dir) {
 		write("The provided Commit transactions and PayDeposit transactions ");
-		writeln("were saved under the " + dir + "directory.");
+		writeln("were saved under the " + dir + " directory.");
 	}
 
 	@Override

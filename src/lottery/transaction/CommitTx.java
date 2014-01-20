@@ -58,7 +58,7 @@ public class CommitTx extends LotteryTx {
 	}
 	
 	public CommitTx(byte[] rawTx, boolean testnet) throws VerificationException {
-		tx = new Transaction(getNetworkParameters(testnet));
+		tx = new Transaction(getNetworkParameters(testnet), rawTx);
 		validateIsCommit();
 	}
 	

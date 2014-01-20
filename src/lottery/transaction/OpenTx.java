@@ -25,7 +25,8 @@ public class OpenTx extends LotteryTx {
 		computeSecret();
 	}
 
-	public OpenTx(LotteryTx commitTx, ECKey sk, List<byte[]> pks, Address address, byte[] secret, BigInteger fee, boolean testnet) {
+	public OpenTx(LotteryTx commitTx, ECKey sk, List<byte[]> pks, Address address, 
+			byte[] secret, BigInteger fee, boolean testnet) throws VerificationException {
 		BigInteger value = new BigInteger("0");
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
@@ -41,6 +42,7 @@ public class OpenTx extends LotteryTx {
 												.data(pks.get(k))
 												.data(secret)
 												.build());
+			tx.getInput(k).verify();
 		}
 		tx.addOutput(value.subtract(fee), address);
 	}

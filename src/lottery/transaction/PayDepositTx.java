@@ -34,11 +34,12 @@ public class PayDepositTx extends LotteryTx {
 	public PayDepositTx(byte[] rawTx, TransactionOutput out, ECKey sk, boolean testnet) throws VerificationException {
 		tx = new Transaction(getNetworkParameters(testnet), rawTx);
 		validateIsIncopletePayDeposit();
-		competeInScript(sk);
-		tx.getInput(0).verify(out);
+		tx.getInput(0).connect(out);
+		computeInScript(sk);
+		tx.getInput(0).verify();
 	}
 
-	protected void competeInScript(ECKey sk) throws ScriptException {
+	protected void computeInScript(ECKey sk) throws ScriptException {
 		List<ScriptChunk> chunks = tx.getInput(0).getScriptSig().getChunks();
 		ScriptBuilder sb = new ScriptBuilder()
 									.data(chunks.get(0).data)

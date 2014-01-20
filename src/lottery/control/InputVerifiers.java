@@ -199,8 +199,8 @@ public class InputVerifiers {
 				else if (secret.length >= minLength + noPlayers) {
 					throw new WrongInputException("The secret is to long.");
 				}
+				return secret;
 			}
-			return null;
         }
 
 		protected byte[] sampleSecret() {
@@ -446,11 +446,11 @@ public class InputVerifiers {
 				throw new WrongInputException("Wrong number of outputs.");
 			}
 			for (int k = 0; k < noPlayers; ++k) {
-				if (!Arrays.equals(pks.get(k), commitTx.getAddress(k))) {	//TODO: pk or address !!?
+				if (!Arrays.equals(Utils.sha256hash160(pks.get(k)), commitTx.getAddress(k))) {
 					throw new WrongInputException("Wrong addresses in outputs.");
 				}
 			}
-			if (commitTx.getSingleDeposit() != value) {
+			if (!commitTx.getSingleDeposit().equals(value)) {
 				throw new WrongInputException("Wrong output's values.");
 			}
 			if (commitTx.getEmptyOutputNr() != counter) {

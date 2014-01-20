@@ -102,7 +102,13 @@ public class Lottery {
 			e.printStackTrace();
 		}
 		memoryStorage.saveTransaction(parameters, commitTx);
-		OpenTx openTx = new OpenTx(commitTx, sk, pks, sk.toAddress(params), secret, fee, testnet);
+		OpenTx openTx = null;
+		try {
+			openTx = new OpenTx(commitTx, sk, pks, sk.toAddress(params), secret, fee, testnet);
+		} catch (VerificationException e) {
+			// TODO cannot happen
+			e.printStackTrace();
+		}
 		memoryStorage.saveTransaction(parameters, openTx);
 		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
 		long protocolStart = ioHandler.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
@@ -113,7 +119,6 @@ public class Lottery {
 			if (k != position) {
 				PayDepositTx payTx = new PayDepositTx(commitTx, k, sk, pks.get(k), fee, payDepositTimestamp, testnet);
 				payTxs.add(payTx);
-				memoryStorage.saveTransaction(parameters, payTx);
 			}
 			else {
 				payTxs.add(null);
@@ -122,7 +127,7 @@ public class Lottery {
 		File payTxsFile = memoryStorage.saveTransactions(parameters, payTxs);
 		ioHandler.showCommitmentScheme(commitTx, openTx, payTxs, payTxsFile.getParent());
 		OthersCommitsVerifier othersCommitsVerifier = 
-				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit, testnet);
+				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit.subtract(fee), testnet);
 		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(noPlayers, position, othersCommitsVerifier);
 		memoryStorage.saveTransactions(parameters, othersCommitsTxs);
 		hashes = othersCommitsVerifier.getHashes();
