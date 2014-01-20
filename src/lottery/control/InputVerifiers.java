@@ -395,7 +395,7 @@ public class InputVerifiers {
 			}
 
 			counter++;
-			return hex;
+			return secret;
 		}
 	}
 
@@ -465,6 +465,9 @@ public class InputVerifiers {
 			
 			hashes.add(commitTx.getHash());
 			counter++;
+			if (counter == noPlayers - 1) {
+				hashes.add(null);
+			}
 			return commitTx;
 		}
 
@@ -572,7 +575,7 @@ public class InputVerifiers {
 		public SignaturesVerifier(ComputeTx computeTx) {
 			this.computeTx = computeTx;
 			this.noPlayers = computeTx.getNoPlayers();
-			this.counter = 0;
+			this.counter = 1;	//we do not have to ask Player 0 for signature 
 		}
 
 		@Override

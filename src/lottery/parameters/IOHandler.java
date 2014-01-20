@@ -61,7 +61,7 @@ public abstract class IOHandler {
 
 	public abstract void showKey(ECKey key, String dir, boolean testnet) throws IOException;
 
-	public abstract void showWinner(int winner, byte[] address);
+	public abstract void showWinner(int winner, Address address);
 
 	public abstract void showClaimMoney(ClaimTx claimMoneyTx, String file)  throws IOException;
 
@@ -80,6 +80,6 @@ public abstract class IOHandler {
 	public abstract void showSignature(byte[] sig);
 
 	public abstract void showWin();
-	public abstract void showLost(int winner, byte[] address);
+	public abstract void showLost(int winner, Address address);
 	public abstract void showLotteryPhase(LotteryPhases phase);
 }

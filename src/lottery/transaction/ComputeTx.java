@@ -9,6 +9,7 @@ import java.util.ListIterator;
 
 import lottery.control.LotteryUtils;
 
+import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.ScriptException;
@@ -25,6 +26,7 @@ public class ComputeTx extends LotteryTx {
 	protected List<byte[]> hashes;
 	protected List<byte[]> pks;
 	protected List<byte[]> signatures;
+	protected boolean testnet;
 	protected int noPlayers;
 	protected int minLength;
 		
@@ -32,15 +34,17 @@ public class ComputeTx extends LotteryTx {
 										int minLength, BigInteger fee, boolean testnet) {
 		this.pks = pks;
 		this.hashes = hashes;
+		this.testnet = testnet;
 		this.minLength = minLength;
 		this.noPlayers = inputs.size();
 		tx = new Transaction(getNetworkParameters(testnet));
 		BigInteger stake = BigInteger.valueOf(0);
 		for (int k = 0; k < noPlayers; ++k) {
-			TransactionOutput in = inputs.get(k).getOutput(inputs.get(k).getOutNr()); 
+			TransactionOutput in = inputs.get(k).getOutput(inputs.get(k).getOutNr());
 			tx.addInput(in);
-			stake.add(in.getValue());
+			stake = stake.add(in.getValue());
 		}
+		
 		tx.addOutput(stake.subtract(fee), calculateOutScript(pks, hashes, minLength));
 		signatures = new LinkedList<byte[]>();
 		for (int k = 0; k < noPlayers; ++k) {
@@ -51,6 +55,7 @@ public class ComputeTx extends LotteryTx {
 	public ComputeTx(byte[] rawTx, boolean testnet) throws VerificationException {
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
+		noPlayers = tx.getInputs().size();
 		validateIsCompute();
 		computeMinLength();
 		computeSecretsHashes();
@@ -60,9 +65,10 @@ public class ComputeTx extends LotteryTx {
 	
 	protected Script calculateOutScript(List<byte[]> pks, List<byte[]> hashes, int minLength) {
 		ScriptBuilder sb = new ScriptBuilder();
-		sb.smallNum(0);
 		byte[] dataMinLength = {(byte) minLength};
 		byte[] dataNoPlayers = {(byte) noPlayers};
+		
+		sb.smallNum(0);
 		for (int k = noPlayers-1; k >= 0; --k) {
 			sb.op(ScriptOpCodes.OP_SWAP)
 			  .op(ScriptOpCodes.OP_SIZE)
@@ -88,7 +94,7 @@ public class ComputeTx extends LotteryTx {
 			}
 		}
 		for (int k = noPlayers-1; k >= 0; --k) {
-			sb.data(pks.get(k));
+			sb.data(Utils.sha256hash160(pks.get(k)));
 		}
 		sb.data(dataNoPlayers);
 		sb.op(ScriptOpCodes.OP_ROLL);
@@ -111,7 +117,7 @@ public class ComputeTx extends LotteryTx {
 												.data(signature)
 												.data(pks.get(k))
 												.build());
-		tx.getInput(k).verify(tx.getInput(k).getConnectedOutput());	//TODO: !! ok?
+		tx.getInput(k).verify();
 		signatures.set(k, signature);
 		return signature;
 	}
@@ -125,6 +131,7 @@ public class ComputeTx extends LotteryTx {
 												.data(signature)
 												.data(sk.getPubKey())
 												.build());
+		tx.getInput(k).verify();
 		signatures.set(k, signature);
 		return signature;
 	}
@@ -184,10 +191,10 @@ public class ComputeTx extends LotteryTx {
 			return false;
 		}
 		
-		for (int n = 0; n < secrets.size(); ++n) {
-			byte[] secret = secrets.get(n);
+		for (int k = 0; k < secrets.size(); ++k) {
+			byte[] secret = secrets.get(k);
 			byte[] sha256 = LotteryUtils.calcHash(secret);
-			if (!Arrays.equals(sha256, hashes.get(n))) {
+			if (!Arrays.equals(sha256, hashes.get(k))) {
 				return false;
 			}
 			else if (secret.length < minLength || secret.length >= minLength + noPlayers) {
@@ -224,8 +231,8 @@ public class ComputeTx extends LotteryTx {
 		return minLength;
 	}
 
-	public byte[] getAddress(int k) {
-		return Utils.sha256hash160(pks.get(k));
+	public Address getAddress(int k) {
+		return new Address(getNetworkParameters(testnet), Utils.sha256hash160(pks.get(k)));
 	}
 
 	public List<byte[]> getSignatures() {

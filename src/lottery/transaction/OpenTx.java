@@ -27,14 +27,16 @@ public class OpenTx extends LotteryTx {
 
 	public OpenTx(LotteryTx commitTx, ECKey sk, List<byte[]> pks, Address address, 
 			byte[] secret, BigInteger fee, boolean testnet) throws VerificationException {
-		BigInteger value = new BigInteger("0");
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
 		tx = new Transaction(params);
-		for (int k = 0; k < noPlayers; ++k) {
-			TransactionOutput out = commitTx.getOutput(k);
-			value = value.add(out.getValue());
+		BigInteger value = new BigInteger("0");
+		for (TransactionOutput out : commitTx.getOutputs()) {
 			tx.addInput(out);
+			value = value.add(out.getValue());
+		}
+		tx.addOutput(value.subtract(fee), address);
+		for (int k = 0; k < noPlayers; ++k) {
 			tx.getInput(k).setScriptSig(new ScriptBuilder()
 												.data(sign(k, sk).encodeToBitcoin())
 												.data(sk.getPubKey())
@@ -44,7 +46,6 @@ public class OpenTx extends LotteryTx {
 												.build());
 			tx.getInput(k).verify();
 		}
-		tx.addOutput(value.subtract(fee), address);
 	}
 
 	protected void computeSecret() throws ScriptException {

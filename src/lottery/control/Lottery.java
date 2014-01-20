@@ -94,7 +94,7 @@ public class Lottery {
 		TxOutputVerifier txOutputVerifier = new TxOutputVerifier(sk, deposit, testnet);
 		TransactionOutput txOutput = ioHandler.askOutput(deposit, txOutputVerifier);
 		//TODO notify output number (txOutputVerifier.getOutNr())
-		LotteryTx commitTx = null;
+		CommitTx commitTx = null;
 		try {
 			commitTx = new CommitTx(txOutput, sk, pks, position, hash, minLength, fee, testnet);
 		} catch (VerificationException e) {

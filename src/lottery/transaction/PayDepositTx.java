@@ -16,19 +16,19 @@ import com.google.bitcoin.script.ScriptChunk;
 
 public class PayDepositTx extends LotteryTx {
 
-	public PayDepositTx(LotteryTx commitTx, int outNr, ECKey sk, byte[] pk, BigInteger fee,
+	public PayDepositTx(CommitTx commitTx, int outNr, ECKey sk, byte[] pk, BigInteger fee,
 			long timestamp, boolean testnet) {
 		TransactionOutput out = commitTx.getOutput(outNr);
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params);
 		tx.setLockTime(timestamp);
+		tx.addOutput(out.getValue().subtract(fee), new Address(params, Utils.sha256hash160(pk)));
 		tx.addInput(out);
+		tx.getInput(0).setSequenceNumber(0);
 		tx.getInput(0).setScriptSig(new ScriptBuilder()
 											.data(sign(0, sk).encodeToBitcoin())
 											.data(sk.getPubKey())
 											.build());
-		tx.getInput(0).setSequenceNumber(0);
-		tx.addOutput(out.getValue().subtract(fee), new Address(params, Utils.sha256hash160(pk)));
 	}
 
 	public PayDepositTx(byte[] rawTx, TransactionOutput out, ECKey sk, boolean testnet) throws VerificationException {

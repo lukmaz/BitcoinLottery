@@ -21,7 +21,6 @@ import lottery.transaction.PayDepositTx;
 import lottery.transaction.PutMoneyTx;
 
 import com.google.bitcoin.core.Address;
-import com.google.bitcoin.core.Base58;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.TransactionOutput;
@@ -216,7 +215,7 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
 			GenericVerifier<PutMoneyTx> verifier) throws IOException {
-		writeln("Enter the PutMoney transactions from other players:");
+		writeln("Enter the PutMoney transactions from players:");
 		List<PutMoneyTx> putMoneyTxs = new LinkedList<PutMoneyTx>();
 		for (int n = 0; n < noPlayers; ++n) {
 			writeln("   from player " + (n+1));
@@ -329,9 +328,9 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public void showWinner(int winner, byte[] address) {
+	public void showWinner(int winner, Address address) {
 		write("The winner is the player number " + (winner+1) + " "); 
-		writeln("(the one with address " + Base58.encode(address) + ")");		
+		writeln("(the one with address " + address + ")");		
 		writeln("    (numerating starts with 1).");		
 		writeln("If you are not the winner press Ctrl+c to exit.");
 	}
@@ -405,10 +404,10 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public void showLost(int winner, byte[] address) {
+	public void showLost(int winner, Address address) {
 		writeln("Unfortunately, you have lost");
 		write("The winner is the player nr " + (winner+1) + " ");
-		writeln("the one with address " + Utils.bytesToHexString(address));
+		writeln("(the one with address " + address + ")");
 	}
 
 	@Override

@@ -18,23 +18,16 @@ public class ClaimTx extends LotteryTx {
 		tx = new Transaction(getNetworkParameters(testnet));
 		tx.addInput(computeTx.getOutput(0));
 		tx.addOutput(computeTx.getValue(0).subtract(fee), address);
-		TransactionSignature signature = sign(0, sk);
-		completeInScript(computeTx, secrets, signature);
+		completeInScript(computeTx, secrets, sk, address);
 	}
 	
 	protected void completeInScript(ComputeTx computeTx, List<byte[]> secrets, 
-				TransactionSignature signature)  throws VerificationException {
+										ECKey sk, Address address)  throws VerificationException {
+		TransactionSignature signature = sign(0, sk);
 		ScriptBuilder scriptBuilder = new ScriptBuilder();
-		int winner = computeTx.getWinner(secrets);
 		//TODO !!! ?
-		for (int k = 0; k < secrets.size(); ++k) {
-			if (k == winner) {
-				scriptBuilder.data(signature.encodeToBitcoin());
-			}
-			else {
-				scriptBuilder.data(emptyData);
-			}
-		}
+		scriptBuilder.data(signature.encodeToBitcoin())
+					 .data(sk.getPubKey());
 		for (byte[] secret : secrets) {
 			scriptBuilder.data(secret);
 		}
