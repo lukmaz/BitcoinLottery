@@ -465,7 +465,7 @@ public class InputVerifiers {
 			
 			hashes.add(commitTx.getHash());
 			counter++;
-			if (counter == noPlayers - 1) {
+			if (counter == noPlayers - 1 && counter == position) {
 				hashes.add(null);
 			}
 			return commitTx;
