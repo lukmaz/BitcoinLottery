@@ -66,7 +66,7 @@ public class MemoryDumper extends MemoryStorage {
 	public File[] saveKey(Parameters parameters, ECKey key) throws IOException {
 		NetworkParameters params = LotteryTx.getNetworkParameters(parameters.isTestnet());
 		File[] files = {saveValues(parameters, BitcoinLotterySettings.pkFilename, 
-							LotteryUtils.singleton(key.toAddress(params)), null),
+							LotteryUtils.singleton(Utils.bytesToHexString(key.getPubKey())), null),
 						saveValues(parameters, BitcoinLotterySettings.skFilename, 
 							LotteryUtils.singleton(key.getPrivateKeyEncoded(params)), null)};
 		return files;

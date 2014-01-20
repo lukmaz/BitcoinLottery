@@ -321,8 +321,9 @@ public class StdIOHandler extends IOHandler {
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		writeln("Generated new <public key, secret key> pair" + (testnet ? " (for the testnet)" : ""));			
 		writeln("They were saved under the " + dir + " directory");
-		writeln("The public address and the private key are:");
+		writeln("The address, public key and the private key are:");
 		writeln(key.toAddress(params).toString());
+		writeln(Utils.bytesToHexString(key.getPubKey()));
 		writeln(key.getPrivateKeyEncoded(params).toString());
 	}
 

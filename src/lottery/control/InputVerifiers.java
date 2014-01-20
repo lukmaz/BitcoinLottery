@@ -236,7 +236,7 @@ public class InputVerifiers {
 				for (int k = 0; k < tx.getOutputs().size(); ++k) {
 					TransactionOutput out = tx.getOutput(k);
                     try {
-						if (out.equals(value) && Arrays.equals(out.getScriptPubKey().getPubKey(), pkHash)) {
+                    	if (out.getValue().equals(value) && Arrays.equals(out.getScriptPubKey().getPubKeyHash(), pkHash)) {
 							outNr = k;
 							return tx.getOutput(k);
 						}
