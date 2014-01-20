@@ -10,6 +10,7 @@ import java.util.List;
 
 import lottery.control.InputVerifiers.WrongInputException;
 import lottery.control.InputVerifiers.GenericVerifier;
+import lottery.control.Lottery.LotteryPhases;
 import lottery.settings.BitcoinLotterySettings;
 import lottery.transaction.ClaimTx;
 import lottery.transaction.CommitTx;
@@ -413,5 +414,29 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showWin() {
 		writeln("Congratulation, you are the winner!");		
+	}
+
+	@Override
+	public void showLotteryPhase(LotteryPhases phase) {
+		String phaseName = null;
+		switch(phase) {
+		case CLAIM_MONEY_PHASE:
+			phaseName = "claim money";
+			break;
+		case DEPOSIT_PHASE:
+			phaseName = "deposit";
+			break;
+		case EXECUTION_PHASE:
+			phaseName = "execution";
+			break;
+		case INITIALIZATION_PHASE:
+			phaseName = "initialization";
+			break;
+		default:
+			//TODO
+			break;
+		}
+		writeln("--- " + phaseName + " phase ---");
+		
 	}
 }

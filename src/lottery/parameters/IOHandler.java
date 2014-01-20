@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import lottery.control.InputVerifiers.GenericVerifier;
+import lottery.control.Lottery.LotteryPhases;
 import lottery.transaction.PutMoneyTx;
 import lottery.transaction.ClaimTx;
 import lottery.transaction.CommitTx;
@@ -80,4 +81,5 @@ public abstract class IOHandler {
 
 	public abstract void showWin();
 	public abstract void showLost(int winner, byte[] address);
+	public abstract void showLotteryPhase(LotteryPhases phase);
 }

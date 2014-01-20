@@ -57,10 +57,18 @@ public class Lottery {
 		initializationPhase();
 		depositPhase();
 		executionPhase();
+		claimMoneyPhase();
+	}
+	
+	public enum LotteryPhases {
+		INITIALIZATION_PHASE,
+		DEPOSIT_PHASE,
+		EXECUTION_PHASE,
+		CLAIM_MONEY_PHASE,
 	}
 	
 	protected void initializationPhase() throws IOException {
-		//TODO: notify phase
+		ioHandler.showLotteryPhase(LotteryPhases.INITIALIZATION_PHASE);
 		sk = ioHandler.askSK(new InputVerifiers.SkVerifier(null, parameters.isTestnet()));
 		noPlayers = ioHandler.askNoPlayers(new InputVerifiers.NoPlayersVerifier()).intValue();
 		PkListVerifier pkListVerifier = new PkListVerifier(sk.getPubKey(), noPlayers);
@@ -77,7 +85,7 @@ public class Lottery {
 	}
 
 	protected void depositPhase() throws IOException {
-		//TODO: notify phase
+		ioHandler.showLotteryPhase(LotteryPhases.DEPOSIT_PHASE);
 		boolean testnet = parameters.isTestnet();
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		byte[] hash = LotteryUtils.calcHash(secret);
@@ -132,7 +140,7 @@ public class Lottery {
 	}
 
 	protected void executionPhase() throws IOException {
-		//TODO: notify phase
+		ioHandler.showLotteryPhase(LotteryPhases.EXECUTION_PHASE);
 		boolean testnet = parameters.isTestnet();
 		List<PutMoneyTx> putMoneyTxs = ioHandler.askPutMoney(noPlayers, stake, 
 				new InputVerifiers.PutMoneyVerifier(pks, stake, testnet));
@@ -159,6 +167,7 @@ public class Lottery {
 	}
 	
 	protected void claimMoneyPhase() throws IOException { //TODO: extract common part with MoneyClaimer ?
+		ioHandler.showLotteryPhase(LotteryPhases.CLAIM_MONEY_PHASE);
 		boolean testnet = parameters.isTestnet();
 		List<byte[]> secrets = ioHandler.askSecretsOrOpens(noPlayers, position, 
 				new InputVerifiers.SecretListVerifier(position, hashes, minLength, testnet));
