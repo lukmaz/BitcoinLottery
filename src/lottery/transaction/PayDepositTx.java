@@ -1,6 +1,7 @@
 package lottery.transaction;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 
 import com.google.bitcoin.core.Address;
@@ -33,12 +34,16 @@ public class PayDepositTx extends LotteryTx {
 
 	public PayDepositTx(byte[] rawTx, TransactionOutput out, ECKey sk, boolean testnet) throws VerificationException {
 		tx = new Transaction(getNetworkParameters(testnet), rawTx);
-		validateIsIncopletePayDeposit();
+		validateIsIncopletePayDeposit(sk);
 		tx.getInput(0).connect(out);
 		computeInScript(sk);
 		tx.getInput(0).verify();
 	}
-
+	
+	public long getTimeLock() {
+		return tx.getLockTime();
+	}
+	
 	protected void computeInScript(ECKey sk) throws ScriptException {
 		List<ScriptChunk> chunks = tx.getInput(0).getScriptSig().getChunks();
 		ScriptBuilder sb = new ScriptBuilder()
@@ -49,20 +54,28 @@ public class PayDepositTx extends LotteryTx {
 									.data(emptyData);
 		tx.getInput(0).setScriptSig(sb.build());
 	}
-	
-	public long getTimeLock() {
-		return tx.getLockTime();
-	}
 
-	protected void validateIsIncopletePayDeposit() throws VerificationException {
-		// TODO !!!
-		//spends out
-		//vin == vout == 1
-		//proper outscript (pay-to-pkhash)
-		//have timelock, 
-		//same values, but one output with value 0 (it should have receiverPk == commiterPk (?))
-		//same comiterPk
-		//same minLength, proper MaxLength+1
+	protected void validateIsIncopletePayDeposit(ECKey sk) throws VerificationException {
+		if (tx.getInputs().size() != 1) {
+			throw new VerificationException("Wrong number of inputs.");
+		}
+		else if (tx.getOutputs().size() != 1) {
+			throw new VerificationException("Wrong number of outputs.");
+		}
+		else if (tx.getInput(0).getSequenceNumber() != 0) {
+			throw new VerificationException("Wrong sequence number.");
+		}
+		else if (tx.getLockTime() < Transaction.LOCKTIME_THRESHOLD) {
+			throw new VerificationException("Wrong lock time.");
+		}
+		else if (tx.getInput(0).getScriptSig().getChunks().size() != 2) {
+			throw new VerificationException("Wrong script sig.");
+		}
+		else if (!tx.getOutput(0).getScriptPubKey().isSentToAddress()) {
+			throw new VerificationException("Wrong out script.");
+		}
+		else if (!Arrays.equals(tx.getOutput(0).getScriptPubKey().getPubKeyHash(), sk.getPubKeyHash())) {
+			throw new VerificationException("Wrong transaction's recipient.");
+		}
 	}
-
 }

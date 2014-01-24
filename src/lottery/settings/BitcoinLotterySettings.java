@@ -3,6 +3,7 @@ package lottery.settings;
 import java.math.BigInteger;
 
 import com.google.bitcoin.core.Utils;
+import com.google.bitcoin.script.ScriptOpCodes;
 
 public class BitcoinLotterySettings {
 
@@ -15,6 +16,9 @@ public class BitcoinLotterySettings {
 	public static final BigInteger defaultFee = Utils.toNanoCoins("0.0001");
 	public static final long defaultLockTimes = 60 * 6; //minutes
 	public static final int defaultMinLength = 32;
+
+	public static final String hashFunctionName = "SHA-256"; 
+	public static final int hashFunctionOpCode = ScriptOpCodes.OP_SHA256; 
 
 	public static final String argDirPrefix = "--dir=";
 	public static final String argTestnet = "--testnet";

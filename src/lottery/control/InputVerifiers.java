@@ -250,53 +250,40 @@ public class InputVerifiers {
 			}
         }
     }
-	
-	protected static class TxVerifier {
+
+	public static class ComputeTxVerifier implements GenericVerifier<ComputeTx> {
 		protected boolean testnet;
-		protected Class<?> txClass;
 		
-		public TxVerifier(Class<?> txClass, boolean testnet) {
+		public ComputeTxVerifier(boolean testnet) {
 			this.testnet = testnet;
-			this.txClass = txClass;
 		}
 
-		public LotteryTx verify(String input) throws WrongInputException {
+		public ComputeTx verify(String input) throws WrongInputException {
 			byte[] rawTx = parseHexString(input);
 			try {
-				if (txClass == OpenTx.class) {
-					return new OpenTx(rawTx, testnet);
-				}
-				else if (txClass == ComputeTx.class) {
-					return new ComputeTx(rawTx, testnet);
-				}
-				else {
-					throw new WrongInputException("");
-				}
+				return new ComputeTx(rawTx, null, testnet);
 			} catch (VerificationException e) {
 				throw new WrongInputException(e.getMessage());
 			}
 		}
 	}
 	
-	public static class ComputeTxVerifier extends TxVerifier implements GenericVerifier<ComputeTx> {
-		public ComputeTxVerifier(boolean testnet) {
-			super(ComputeTx.class, testnet);
+	public static class OpenTxVerifier implements GenericVerifier<OpenTx> {
+		protected boolean testnet;
+		protected byte[] hash;
+		
+		public OpenTxVerifier(byte[] hash, boolean testnet) {
+			this.hash = hash;
+			this.testnet = testnet;
 		}
 
-		@Override
-		public ComputeTx verify(String input) throws WrongInputException {
-			return (ComputeTx) super.verify(input);
-		}
-	}
-	
-	public static class OpenTxVerifier extends TxVerifier implements GenericVerifier<OpenTx> {
-		public OpenTxVerifier(boolean testnet) {
-			super(OpenTx.class, testnet);
-		}
-
-		@Override
 		public OpenTx verify(String input) throws WrongInputException {
-			return (OpenTx) super.verify(input);
+			byte[] rawTx = parseHexString(input);
+			try {
+				return new OpenTx(rawTx, hash, testnet);
+			} catch (VerificationException e) {
+				throw new WrongInputException(e.getMessage());
+			}
 		}
 	}
 	
@@ -379,7 +366,7 @@ public class InputVerifiers {
 			byte[] hex = parseHexString(input);
 			byte[] secret;
 			try {
-				OpenTx openTx = new OpenTx(hex, testnet);
+				OpenTx openTx = new OpenTx(hex, hashes.get(counter), testnet);
 				secret = openTx.getSecret();
 				verifySecret(secret);
 			} catch (VerificationException e) {
@@ -459,7 +446,7 @@ public class InputVerifiers {
 			if (commitTx.getMinLength() != minLength) {
 				throw new WrongInputException("Wrong secret's minimal length.");
 			}
-			if (Arrays.equals(commitTx.getCommiterAddress(), pks.get(counter))) {
+			if (!Arrays.equals(commitTx.getCommiterAddress(), Utils.sha256hash160(pks.get(counter)))) {
 				throw new WrongInputException("Wrong commiter's public key.");
 			}
 			
@@ -520,13 +507,7 @@ public class InputVerifiers {
 			if (payTx.getTimeLock() != timestamp) {
 				throw new WrongInputException("Wrong timelock of the transaction.");
 			}
-			try {
-				if (!Arrays.equals(payTx.getOutput(0).getScriptPubKey().getPubKeyHash(), sk.getPubKeyHash())) {
-					throw new WrongInputException("Wrong receipent of the transaction.");
-				}
-			} catch (ScriptException e) {
-				//do nothing -- can not happen
-			}
+			
 			counter++;
 			return payTx;
 		}
@@ -595,21 +576,30 @@ public class InputVerifiers {
 		
 	}
 	
-	public static class SignedComputeTxVerifier extends TxVerifier implements GenericVerifier<ComputeTx> {
+	public static class SignedComputeTxVerifier implements GenericVerifier<ComputeTx> {
 		protected ComputeTx computeTx;
 		protected List<byte[]> pks;
+		protected List<PutMoneyTx> inputs;
+		protected boolean testnet; 
 		protected int noPlayers;
 		
-		public SignedComputeTxVerifier(ComputeTx computeTx, List<byte[]> pks, boolean testnet) {
-			super(ComputeTx.class, testnet);
+		public SignedComputeTxVerifier(ComputeTx computeTx, List<byte[]> pks, List<PutMoneyTx> inputs, boolean testnet) {
+			this.testnet = testnet;
 			this.computeTx = computeTx;
 			this.pks = pks;
+			this.inputs = inputs;
 			noPlayers = pks.size();
 		}
 
 		@Override
 		public ComputeTx verify(String input) throws WrongInputException {
-			ComputeTx tx = (ComputeTx) super.verify(input);
+			byte[] rawTx = parseHexString(input);
+			ComputeTx tx;
+			try {
+				tx = new ComputeTx(rawTx, inputs, testnet);
+			} catch (VerificationException e) {
+				throw new WrongInputException(e.getMessage());
+			}
 			if (tx.getNoPlayers() != noPlayers) {
 				throw new WrongInputException("Wrong number of inputs.");
 			}

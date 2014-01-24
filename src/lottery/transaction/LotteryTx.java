@@ -10,7 +10,6 @@ import com.google.bitcoin.core.Sha256Hash;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Utils;
-import com.google.bitcoin.core.VerificationException;
 import com.google.bitcoin.crypto.TransactionSignature;
 import com.google.bitcoin.params.MainNetParams;
 import com.google.bitcoin.params.TestNet3Params;
@@ -22,14 +21,14 @@ public abstract class LotteryTx{
 	
 	@Override
 	public String toString() {
-		return tx.toString(); //TODO: is it raw? change to raw / create another function
+		return tx.toString();
 	}
 	
 	public byte[] toRaw() {
 		return tx.bitcoinSerialize();
 	}
 	
-	public static NetworkParameters getNetworkParameters(boolean testnet) { //move to Utils?
+	public static NetworkParameters getNetworkParameters(boolean testnet) { //TODO move to Utils
 		return testnet ? TestNet3Params.get() : MainNetParams.get();
 	}
 	
@@ -57,17 +56,6 @@ public abstract class LotteryTx{
 	public List<TransactionOutput> getOutputs() {
 		return tx.getOutputs();
 	}
+
 	
-	protected void verify(boolean assertion) throws VerificationException {
-		if (!assertion) {
-			throw new VerificationException(""); //TODO: message
-		}
-	}
-	
-	protected void verifyCommon() throws VerificationException { //TODO ?
-		verify(tx != null);
-		verify(!tx.isCoinBase());
-		verify(tx.getInputs().size() > 0);
-		verify(tx.getOutputs().size() > 0);
-	}
 }

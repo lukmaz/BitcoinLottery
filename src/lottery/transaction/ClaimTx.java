@@ -25,7 +25,6 @@ public class ClaimTx extends LotteryTx {
 										ECKey sk, Address address)  throws VerificationException {
 		TransactionSignature signature = sign(0, sk);
 		ScriptBuilder scriptBuilder = new ScriptBuilder();
-		//TODO !!! ?
 		scriptBuilder.data(signature.encodeToBitcoin())
 					 .data(sk.getPubKey());
 		for (byte[] secret : secrets) {

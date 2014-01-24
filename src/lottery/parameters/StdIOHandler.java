@@ -355,8 +355,22 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public void showSecret(byte[] secret, String file) throws IOException {
 		writeln("The secret was saved in the " + file + " file");
-		writeln("Your secret is:");
+		writeln("The secret is:");
 		writeln(Utils.bytesToHexString(secret));
+	}
+	
+	@Override
+	public void showSecrets(List<byte[]> secrets, String file) throws IOException {
+		if (secrets.size() == 1) {
+			showSecret(secrets.get(0), file);
+		}
+		else {
+			writeln("The extracted secrets were saved in the " + file + " file");
+			writeln("The possible secrets are:");
+			for (byte[] secret : secrets) {
+				writeln(Utils.bytesToHexString(secret));
+			}
+		}
 	}
 
 	@Override

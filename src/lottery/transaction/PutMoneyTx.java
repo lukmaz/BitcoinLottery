@@ -44,4 +44,8 @@ public class PutMoneyTx extends LotteryTx {
 	public int getOutNr() {
 		return outNr;
 	}
+	
+	public TransactionOutput getOut() {
+		return tx.getOutput(getOutNr());
+	}
 }

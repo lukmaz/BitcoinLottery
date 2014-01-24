@@ -67,6 +67,7 @@ public abstract class IOHandler {
 
 	public abstract void showOpenedSecret(byte[] secret, String file) throws IOException;
 	public abstract void showSecret(byte[] secret, String path) throws IOException;
+	public abstract void showSecrets(List<byte[]> secrets, String path) throws IOException;
 
 	public abstract void showHash(byte[] hash) throws IOException;
 

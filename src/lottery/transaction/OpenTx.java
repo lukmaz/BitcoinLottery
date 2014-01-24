@@ -1,24 +1,30 @@
 package lottery.transaction;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+
+import lottery.control.LotteryUtils;
 
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
-import com.google.bitcoin.core.ScriptException;
 import com.google.bitcoin.core.Transaction;
+import com.google.bitcoin.core.TransactionInput;
 import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.VerificationException;
-import com.google.bitcoin.script.Script;
 import com.google.bitcoin.script.ScriptBuilder;
 import com.google.bitcoin.script.ScriptChunk;
 
 public class OpenTx extends LotteryTx {
-	protected byte[] secret = null;
+	protected List<byte[]> possibleSecrets;
+	protected byte[] hash;
 	protected final int SECRET_POSITION = 4;
 
-	public OpenTx(byte[] rawTx, boolean testnet) throws VerificationException {
+	public OpenTx(byte[] rawTx, byte[] hash, boolean testnet) throws VerificationException {
+		this.hash = hash;
+		possibleSecrets = new LinkedList<byte[]>();
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
 		validateIsOpen();
@@ -30,7 +36,7 @@ public class OpenTx extends LotteryTx {
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
 		tx = new Transaction(params);
-		BigInteger value = new BigInteger("0");
+		BigInteger value = BigInteger.valueOf(0);
 		for (TransactionOutput out : commitTx.getOutputs()) {
 			tx.addInput(out);
 			value = value.add(out.getValue());
@@ -48,22 +54,43 @@ public class OpenTx extends LotteryTx {
 		}
 	}
 
-	protected void computeSecret() throws ScriptException {
-		Script outScript = tx.getInput(0).getScriptSig();
-		List<ScriptChunk> chunks = outScript.getChunks();
-		secret = chunks.get(SECRET_POSITION).data;
+	protected void computeSecret() throws VerificationException {
+		for (TransactionInput input : tx.getInputs()) {
+			List<ScriptChunk> chunks = input.getScriptSig().getChunks();
+			if (chunks.size() == 5) {
+				byte[] data = chunks.get(SECRET_POSITION).data;
+				if (hash != null) {
+					if (Arrays.equals(hash, LotteryUtils.calcHash(data))) {
+						possibleSecrets.add(data);
+						return;
+					}
+				}
+				else {
+					possibleSecrets.add(data);
+				}
+			}
+		}
+		
+		if (possibleSecrets.size() == 0) {
+			throw new VerificationException("Not an Open transaction.");
+		}
 	}
 
 	protected void validateIsOpen() throws VerificationException {
-		verifyCommon();
-		verify(!tx.isTimeLocked());
-		verify(tx.getOutputs().size() == 1);
-		
-		//TODO !!!
+		computeSecret();
 	}
 	
 	public byte[] getSecret() {
-		return secret;
+		if (possibleSecrets.size() > 0) {
+			return possibleSecrets.get(0);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public List<byte[]> getPossibleSecrets() {
+		return possibleSecrets;
 	}
 
 }

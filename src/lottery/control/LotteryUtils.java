@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import lottery.settings.BitcoinLotterySettings;
+
 public class LotteryUtils {
 	static public File getDir(String[] pathParts) throws IOException {
 		Set<PosixFilePermission> permissions = new HashSet<PosixFilePermission>();
@@ -35,7 +37,7 @@ public class LotteryUtils {
 	public static byte[] calcHash(byte[] secret) {
 		MessageDigest SHA256 = null; 
 		try {
-			SHA256 = MessageDigest.getInstance("SHA-256"); //TODO: global settings for hash function
+			SHA256 = MessageDigest.getInstance(BitcoinLotterySettings.hashFunctionName);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO
 			e.printStackTrace();

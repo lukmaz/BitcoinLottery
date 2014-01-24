@@ -44,6 +44,7 @@ public class Lottery {
 	protected byte[] secret = null;
 	protected ComputeTx computeTx = null;
 	protected List<byte[]> hashes;
+	protected List<CommitTx> othersCommitsTxs;
 	
 	
 	public Lottery(IOHandler ioHandler, Parameters parameters, MemoryStorage memoryStorage) {
@@ -128,7 +129,7 @@ public class Lottery {
 		ioHandler.showCommitmentScheme(commitTx, openTx, payTxs, payTxsFile.getParent());
 		OthersCommitsVerifier othersCommitsVerifier = 
 				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit.subtract(fee), testnet);
-		List<CommitTx> othersCommitsTxs = ioHandler.askOthersCommits(noPlayers, position, othersCommitsVerifier);
+		othersCommitsTxs = ioHandler.askOthersCommits(noPlayers, position, othersCommitsVerifier);
 		memoryStorage.saveTransactions(parameters, othersCommitsTxs);
 		hashes = othersCommitsVerifier.getHashes();
 		hashes.set(position, hash);
@@ -166,7 +167,7 @@ public class Lottery {
 		}
 		else {
 			ioHandler.showSignature(computeSig);
-			computeTx = ioHandler.askCompute(new InputVerifiers.SignedComputeTxVerifier(computeTx, pks, testnet));
+			computeTx = ioHandler.askCompute(new InputVerifiers.SignedComputeTxVerifier(computeTx, pks, putMoneyTxs, testnet));
 		}
 		memoryStorage.saveTransaction(parameters, computeTx);
 	}
