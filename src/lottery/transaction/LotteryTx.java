@@ -45,12 +45,12 @@ public abstract class LotteryTx{
 	}
 	
 
-	public BigInteger getValue(int n) {
-		return tx.getOutput(n).getValue();
+	public BigInteger getValue(int k) {
+		return tx.getOutput(k).getValue();
 	}
 
-	public TransactionOutput getOutput(int n) {
-		return tx.getOutput(n);
+	public TransactionOutput getOutput(int k) {
+		return tx.getOutput(k);
 	}
 
 	public List<TransactionOutput> getOutputs() {

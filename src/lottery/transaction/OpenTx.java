@@ -2,7 +2,7 @@ package lottery.transaction;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lottery.control.LotteryUtils;
@@ -24,7 +24,7 @@ public class OpenTx extends LotteryTx {
 
 	public OpenTx(byte[] rawTx, byte[] hash, boolean testnet) throws VerificationException {
 		this.hash = hash;
-		possibleSecrets = new LinkedList<byte[]>();
+		possibleSecrets = new ArrayList<byte[]>();
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
 		validateIsOpen();
@@ -36,7 +36,7 @@ public class OpenTx extends LotteryTx {
 		NetworkParameters params = getNetworkParameters(testnet);
 		int noPlayers = commitTx.getOutputs().size();
 		tx = new Transaction(params);
-		BigInteger value = BigInteger.valueOf(0);
+		BigInteger value = BigInteger.ZERO;
 		for (TransactionOutput out : commitTx.getOutputs()) {
 			tx.addInput(out);
 			value = value.add(out.getValue());
@@ -52,6 +52,7 @@ public class OpenTx extends LotteryTx {
 												.build());
 			tx.getInput(k).verify();
 		}
+		tx.verify();
 	}
 
 	protected void computeSecret() throws VerificationException {
@@ -77,6 +78,7 @@ public class OpenTx extends LotteryTx {
 	}
 
 	protected void validateIsOpen() throws VerificationException {
+		tx.verify();
 		computeSecret();
 	}
 	

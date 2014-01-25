@@ -3,7 +3,7 @@ package lottery.control;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.bitcoin.core.Address;
@@ -205,8 +205,8 @@ public class InputVerifiers {
 
 		protected byte[] sampleSecret() {
 		    SecureRandom random = new SecureRandom();
-		    int n = random.nextInt(noPlayers); 	//TODO: is it secure?
-		    byte[] secret = new byte[minLength + n];
+		    int k = random.nextInt(noPlayers); 	//TODO: is it secure?
+		    byte[] secret = new byte[minLength + k];
 			random.nextBytes(secret);
 			return secret;
 		}
@@ -404,7 +404,7 @@ public class InputVerifiers {
 			this.minLength = minLength;
 			this.value = deposit.divide(BigInteger.valueOf(noPlayers-1));
 			this.testnet = testnet;
-			this.hashes = new LinkedList<byte[]>();
+			this.hashes = new ArrayList<byte[]>();
 			this.counter = 0;
 		}
 

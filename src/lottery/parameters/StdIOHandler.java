@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lottery.control.InputVerifiers.WrongInputException;
@@ -155,7 +155,7 @@ public class StdIOHandler extends IOHandler {
 	
 	@Override
 	public List<byte[]> askPks(int noPlayers, GenericVerifier<byte[]> verifier) throws IOException {
-		List<byte[]> pks = new LinkedList<byte[]>();
+		List<byte[]> pks = new ArrayList<byte[]>();
 		writeln("Enter public keys of each players (as they will be used in the lottery) in players order");
 		for (int k = 0; k < noPlayers; ++k) {
 			pks.add(readObject(verifier, null));
@@ -167,9 +167,9 @@ public class StdIOHandler extends IOHandler {
 	@Override
 	public List<byte[]> askSecrets(List<byte[]> secretsHahses, GenericVerifier<byte[]> verifier) throws IOException {
 		writeln("Enter the secrets (or Open transaction containing them) corresponding for the following hashes:");
-		List<byte[]> secrets = new LinkedList<byte[]>();
-		for (int n = 0; n < secretsHahses.size(); ++n) {
-			writeln("   for hash " + Utils.bytesToHexString(secretsHahses.get(n)));
+		List<byte[]> secrets = new ArrayList<byte[]>();
+		for (int k = 0; k < secretsHahses.size(); ++k) {
+			writeln("   for hash " + Utils.bytesToHexString(secretsHahses.get(k)));
 			secrets.add(readObject(verifier, null));
 		}
 		
@@ -180,10 +180,10 @@ public class StdIOHandler extends IOHandler {
 	public List<CommitTx> askOthersCommits(int noPlayers, int position,
 			GenericVerifier<CommitTx> verifier) throws IOException {
 		writeln("Enter the Commit transactions from other players:");
-		List<CommitTx> commitTxs = new LinkedList<CommitTx>();
-		for (int n = 0; n < noPlayers; ++n) {
-			if (n != position) {
-				writeln("   from player " + (n+1));
+		List<CommitTx> commitTxs = new ArrayList<CommitTx>();
+		for (int k = 0; k < noPlayers; ++k) {
+			if (k != position) {
+				writeln("   from player " + (k+1));
 				commitTxs.add(readObject(verifier, null));
 			}
 			else {
@@ -198,10 +198,10 @@ public class StdIOHandler extends IOHandler {
 	public List<PayDepositTx> askOthersPayDeposits(int noPlayers, int position,
 			GenericVerifier<PayDepositTx> verifier) throws IOException {
 		writeln("Enter the PayDeposit transactions from other players:");
-		List<PayDepositTx> payDepositTxs = new LinkedList<PayDepositTx>();
-		for (int n = 0; n < noPlayers; ++n) {
-			if (n != position) {
-				writeln("   from player " + (n+1));
+		List<PayDepositTx> payDepositTxs = new ArrayList<PayDepositTx>();
+		for (int k = 0; k < noPlayers; ++k) {
+			if (k != position) {
+				writeln("   from player " + (k+1));
 				payDepositTxs.add(readObject(verifier, null));
 			}
 			else {
@@ -216,9 +216,9 @@ public class StdIOHandler extends IOHandler {
 	public List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
 			GenericVerifier<PutMoneyTx> verifier) throws IOException {
 		writeln("Enter the PutMoney transactions from players:");
-		List<PutMoneyTx> putMoneyTxs = new LinkedList<PutMoneyTx>();
-		for (int n = 0; n < noPlayers; ++n) {
-			writeln("   from player " + (n+1));
+		List<PutMoneyTx> putMoneyTxs = new ArrayList<PutMoneyTx>();
+		for (int k = 0; k < noPlayers; ++k) {
+			writeln("   from player " + (k+1));
 			putMoneyTxs.add(readObject(verifier, null));
 		}
 		
@@ -229,10 +229,10 @@ public class StdIOHandler extends IOHandler {
 	public List<byte[]> askSignatures(int noPlayers, int position,
 			GenericVerifier<byte[]> verifier) throws IOException {
 		writeln("Enter the signatures on Compute transaction from other players:");
-		List<byte[]> signatures = new LinkedList<byte[]>();
-		for (int n = 0; n < noPlayers; ++n) {
-			if (n != position) {
-				writeln("   from player " + (n+1));
+		List<byte[]> signatures = new ArrayList<byte[]>();
+		for (int k = 0; k < noPlayers; ++k) {
+			if (k != position) {
+				writeln("   from player " + (k+1));
 				signatures.add(readObject(verifier, null));
 			}
 			else {
@@ -246,10 +246,10 @@ public class StdIOHandler extends IOHandler {
 	public List<byte[]> askSecretsOrOpens(int noPlayers, int position,
 			GenericVerifier<byte[]> verifier) throws IOException {
 		writeln("Enter the Open transactions or secrets from other players:");
-		List<byte[]> secrets = new LinkedList<byte[]>();
-		for (int n = 0; n < noPlayers; ++n) {
-			if (n != position) {
-				writeln("   from player " + (n+1));
+		List<byte[]> secrets = new ArrayList<byte[]>();
+		for (int k = 0; k < noPlayers; ++k) {
+			if (k != position) {
+				writeln("   from player " + (k+1));
 				secrets.add(readObject(verifier, null));
 			}
 			else {

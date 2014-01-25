@@ -22,6 +22,7 @@ public class PutMoneyTx extends LotteryTx {
 	}
 
 	protected int validateIsPutMoney(byte[] pkHash, BigInteger stake) throws VerificationException {
+		tx.verify();
 		for (int k = 0; k < tx.getOutputs().size(); ++k) {
 			TransactionOutput out = tx.getOutput(k);
 			if (out.getValue().equals(stake) && out.getScriptPubKey().isSentToAddress()) {
@@ -46,6 +47,6 @@ public class PutMoneyTx extends LotteryTx {
 	}
 	
 	public TransactionOutput getOut() {
-		return tx.getOutput(getOutNr());
+		return tx.getOutput(outNr);
 	}
 }

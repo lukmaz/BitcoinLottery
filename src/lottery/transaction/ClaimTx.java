@@ -19,6 +19,7 @@ public class ClaimTx extends LotteryTx {
 		tx.addInput(computeTx.getOutput(0));
 		tx.addOutput(computeTx.getValue(0).subtract(fee), address);
 		completeInScript(computeTx, secrets, sk, address);
+		tx.verify();
 	}
 	
 	protected void completeInScript(ComputeTx computeTx, List<byte[]> secrets, 
@@ -31,6 +32,6 @@ public class ClaimTx extends LotteryTx {
 			scriptBuilder.data(secret);
 		}
 		tx.getInput(0).setScriptSig(scriptBuilder.build());
-		tx.getInput(0).verify(computeTx.getOutput(0));
+		tx.getInput(0).verify();
 	}
 }

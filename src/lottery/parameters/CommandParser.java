@@ -28,9 +28,9 @@ public class CommandParser {
 			return defaultCommand;
 		}
 		else {
-			for (int n = 1; n < args.length; ++n) {
-				root = getDir(args[n]) == null ? root : getDir(args[n]);
-				testnet = isTestnet(args[n]) == false ? testnet : isTestnet(args[n]);
+			for (int k = 1; k < args.length; ++k) {
+				root = getDir(args[k]) == null ? root : getDir(args[k]);
+				testnet = isTestnet(args[k]) == false ? testnet : isTestnet(args[k]);
 				//TODO: else return HELP
 			}
 			Command command = getCommand(args[0]);

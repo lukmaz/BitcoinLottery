@@ -2,7 +2,7 @@ package lottery.transaction;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lottery.settings.BitcoinLotterySettings;
@@ -37,6 +37,13 @@ public class CommitTx extends LotteryTx {
 		NetworkParameters params = getNetworkParameters(testnet);
 		
 		tx = new Transaction(params);
+		for (int k = 0; k < noPlayers; ++k) {
+			BigInteger currentStake = stake;
+			if (k == position) { //TODO: simplier script?
+				currentStake = BigInteger.ZERO;
+			}
+			tx.addOutput(currentStake, getCommitOutScript(Utils.sha256hash160(pks.get(k))));
+		}
 		tx.addInput(out);
 		if (out.getScriptPubKey().isSentToAddress()) {
 			tx.getInput(0).setScriptSig(ScriptBuilder.createInputScript(sign(0, sk), sk));
@@ -47,18 +54,12 @@ public class CommitTx extends LotteryTx {
 		else {
 			throw new VerificationException("Bad transaction output.");
 		}
-		for (int k = 0; k < noPlayers; ++k) {
-			BigInteger currentStake = stake;
-			if (k == position) { //TODO: simplier script?
-				currentStake = BigInteger.valueOf(0);
-			}
-			tx.addOutput(currentStake, getCommitOutScript(Utils.sha256hash160(pks.get(k))));
-		}
-		this.addresses = new LinkedList<byte[]>();
+		this.addresses = new ArrayList<byte[]>();
 		for (byte[] pk : pks) {
 			this.addresses.add(Utils.sha256hash160(pk));
 		}
 		tx.verify();
+		tx.getInput(0).verify();
 	}
 	
 	public CommitTx(byte[] rawTx, boolean testnet) throws VerificationException {
@@ -99,9 +100,9 @@ public class CommitTx extends LotteryTx {
 		if (noPlayers < 2) {
 			throw new VerificationException("Wrong number of outputs.");
 		}
-		addresses = new LinkedList<byte[]>();
+		addresses = new ArrayList<byte[]>();
 		for (int k = 0; k < noPlayers; ++k) {
-			if (tx.getOutput(k).getValue().equals(BigInteger.valueOf(0))) {
+			if (tx.getOutput(k).getValue().equals(BigInteger.ZERO)) {
 				position = k;
 			}
 			else {
@@ -120,7 +121,7 @@ public class CommitTx extends LotteryTx {
 			if (!Arrays.equals(tx.getOutput(k).getScriptPubKey().getProgram(), getCommitOutScript(addresses.get(k)).getProgram())) {
 				throw new VerificationException("Wrong outputs.");
 			}
-			if (k == position && !tx.getOutput(k).getValue().equals(BigInteger.valueOf(0))) {
+			if (k == position && !tx.getOutput(k).getValue().equals(BigInteger.ZERO)) {
 				throw new VerificationException("Wrong outputs.");
 			}
 			else if (k != position && !tx.getOutput(k).getValue().equals(stake)) {

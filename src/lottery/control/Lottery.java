@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lottery.control.InputVerifiers.OthersCommitsVerifier;
@@ -106,19 +106,23 @@ public class Lottery {
 		OpenTx openTx = null;
 		try {
 			openTx = new OpenTx(commitTx, sk, pks, sk.toAddress(params), secret, fee, testnet);
-		} catch (VerificationException e) {
-			// TODO cannot happen
+		} catch (VerificationException e) { // TODO cannot happen
 			e.printStackTrace();
 		}
 		memoryStorage.saveTransaction(parameters, openTx);
-		List<PayDepositTx> payTxs = new LinkedList<PayDepositTx>();
+		List<PayDepositTx> payTxs = new ArrayList<PayDepositTx>();
 		long protocolStart = ioHandler.askStartTime(roundCurrentTime(), new InputVerifiers.StartTimeVerifier());
 		long payDepositTimestamp = protocolStart + lockTime * 60;
 		//TODO: notify payDepositTimestamp 
 		
 		for (int k = 0; k < noPlayers; ++k) {
 			if (k != position) {
-				PayDepositTx payTx = new PayDepositTx(commitTx, k, sk, pks.get(k), fee, payDepositTimestamp, testnet);
+				PayDepositTx payTx = null;
+				try {
+					payTx = new PayDepositTx(commitTx, k, sk, pks.get(k), fee, payDepositTimestamp, testnet);
+				} catch (VerificationException e) { //cannot happen
+					e.printStackTrace();
+				}
 				payTxs.add(payTx);
 			}
 			else {
@@ -151,7 +155,11 @@ public class Lottery {
 		List<PutMoneyTx> putMoneyTxs = ioHandler.askPutMoney(noPlayers, stake, 
 				new InputVerifiers.PutMoneyVerifier(pks, stake, testnet));
 		memoryStorage.saveTransactions(parameters, putMoneyTxs);
-		computeTx = new ComputeTx(putMoneyTxs, pks, hashes, minLength, fee, testnet);
+		try {
+			computeTx = new ComputeTx(putMoneyTxs, pks, hashes, minLength, fee, testnet);
+		} catch (VerificationException e1) { //cannot happen
+			e1.printStackTrace();
+		}
 		byte[] computeSig = null;
 		try {
 			computeSig = computeTx.addSignature(position, sk);

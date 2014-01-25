@@ -8,7 +8,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +47,7 @@ public class LotteryUtils {
 	}
 	
 	public static <T> List<T> singleton(T elem) {
-		List<T> list = new LinkedList<T>();
+		List<T> list = new ArrayList<T>();
 		list.add(elem);
 		return list;
 	}

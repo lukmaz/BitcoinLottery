@@ -18,7 +18,7 @@ import com.google.bitcoin.script.ScriptChunk;
 public class PayDepositTx extends LotteryTx {
 
 	public PayDepositTx(CommitTx commitTx, int outNr, ECKey sk, byte[] pk, BigInteger fee,
-			long timestamp, boolean testnet) {
+			long timestamp, boolean testnet) throws VerificationException {
 		TransactionOutput out = commitTx.getOutput(outNr);
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params);
@@ -30,6 +30,7 @@ public class PayDepositTx extends LotteryTx {
 											.data(sign(0, sk).encodeToBitcoin())
 											.data(sk.getPubKey())
 											.build());
+		tx.verify();
 	}
 
 	public PayDepositTx(byte[] rawTx, TransactionOutput out, ECKey sk, boolean testnet) throws VerificationException {
@@ -37,6 +38,7 @@ public class PayDepositTx extends LotteryTx {
 		validateIsIncopletePayDeposit(sk);
 		tx.getInput(0).connect(out);
 		computeInScript(sk);
+		tx.verify();
 		tx.getInput(0).verify();
 	}
 	

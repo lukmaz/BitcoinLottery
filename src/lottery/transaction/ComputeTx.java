@@ -3,7 +3,7 @@ package lottery.transaction;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -33,14 +33,14 @@ public class ComputeTx extends LotteryTx {
 	protected int minLength;
 
 	public ComputeTx(List<PutMoneyTx> inputs, List<byte[]> pks, List<byte[]> hashes, 
-										int minLength, BigInteger fee, boolean testnet) {
+										int minLength, BigInteger fee, boolean testnet) throws VerificationException {
 		this.pks = pks;
 		this.hashes = hashes;
 		this.testnet = testnet;
 		this.minLength = minLength;
 		this.noPlayers = inputs.size();
 		tx = new Transaction(getNetworkParameters(testnet));
-		BigInteger stake = BigInteger.valueOf(0);
+		BigInteger stake = BigInteger.ZERO;
 		for (int k = 0; k < noPlayers; ++k) {
 			TransactionOutput in = inputs.get(k).getOut();
 			tx.addInput(in);
@@ -48,10 +48,11 @@ public class ComputeTx extends LotteryTx {
 		}
 		
 		tx.addOutput(stake.subtract(fee), calculateOutScript());
-		signatures = new LinkedList<byte[]>();
+		signatures = new ArrayList<byte[]>();
 		for (int k = 0; k < noPlayers; ++k) {
 			signatures.add(null);
 		}
+		tx.verify();
 	}
 
 	public ComputeTx(byte[] rawTx, List<PutMoneyTx> inputs, boolean testnet) throws VerificationException {
@@ -84,7 +85,7 @@ public class ComputeTx extends LotteryTx {
 	}
 	
 	public List<byte[]> getSecretsHashes() {
-		return new LinkedList<byte[]> (hashes);
+		return new ArrayList<byte[]> (hashes);
 	}
 
 	//winner \in [0, noPlayers-1]
@@ -204,7 +205,7 @@ public class ComputeTx extends LotteryTx {
 		}
 		for (int k = 0; k < tx.getInputs().size(); ++k) {
 			TransactionInput in = tx.getInput(k);
-			if (in.getSequenceNumber() != TransactionInput.NO_SEQUENCE) {
+			if (in.hasSequence()) {
 				throw new VerificationException("Wrong sequence number.");
 			}
 			else if (in.getScriptSig().getChunks().size() != 2) {
@@ -212,6 +213,7 @@ public class ComputeTx extends LotteryTx {
 			}
 			if (inputs != null) {
 				in.connect(inputs.get(k).getOut());
+				in.verify();
 			}
 		}
 		
@@ -228,14 +230,14 @@ public class ComputeTx extends LotteryTx {
 	}
 
 	protected void computePks() throws ScriptException {
-		pks = new LinkedList<byte[]>();
+		pks = new ArrayList<byte[]>();
 		for (int k = 0; k < noPlayers; ++k) {
 			pks.add(tx.getInput(k).getScriptSig().getChunks().get(1).data);
 		}
 	}
 
 	protected void computeSignatures() throws ScriptException {
-		signatures = new LinkedList<byte[]>();
+		signatures = new ArrayList<byte[]>();
 		for (int k = 0; k < noPlayers; ++k) {
 			signatures.add(tx.getInput(k).getScriptSig().getChunks().get(0).data);
 		}
@@ -243,7 +245,7 @@ public class ComputeTx extends LotteryTx {
 	
 	protected void computeSecretsHashes() throws VerificationException {
 		Script outScript = tx.getOutput(0).getScriptPubKey();
-		hashes = new LinkedList<byte[]>();
+		hashes = new ArrayList<byte[]>();
 		List<ScriptChunk> chunks = outScript.getChunks();
 		ListIterator<ScriptChunk> it = chunks.listIterator();
 		while(it.hasNext()) {
