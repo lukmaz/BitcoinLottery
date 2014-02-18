@@ -34,7 +34,7 @@ public class LotteryUtils {
 		return dir;
 	}
 	
-	public static byte[] calcHash(byte[] secret) {
+	public static byte[] calcSingleHash(byte[] value) {
 		MessageDigest SHA256 = null; 
 		try {
 			SHA256 = MessageDigest.getInstance(BitcoinLotterySettings.hashFunctionName);
@@ -42,8 +42,12 @@ public class LotteryUtils {
 			// TODO
 			e.printStackTrace();
 		}
-		SHA256.update(secret);
+		SHA256.update(value);
 		return SHA256.digest();
+	}
+	
+	public static byte[] calcDoubleHash(byte[] value) {	
+		return calcSingleHash(calcSingleHash(value));
 	}
 	
 	public static <T> List<T> singleton(T elem) {

@@ -68,7 +68,7 @@ public class ComputeTx extends LotteryTx {
 		
 		for (int k = 0; k < secrets.size(); ++k) {
 			byte[] secret = secrets.get(k);
-			byte[] sha256 = LotteryUtils.calcHash(secret);
+			byte[] sha256 = LotteryUtils.calcDoubleHash(secret);
 			if (!Arrays.equals(sha256, hashes.get(k))) {
 				return false;
 			}

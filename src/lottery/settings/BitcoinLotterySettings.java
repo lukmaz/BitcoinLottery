@@ -18,7 +18,7 @@ public class BitcoinLotterySettings {
 	public static final int defaultMinLength = 32;
 
 	public static final String hashFunctionName = "SHA-256"; 
-	public static final int hashFunctionOpCode = ScriptOpCodes.OP_SHA256; 
+	public static final int hashFunctionOpCode = ScriptOpCodes.OP_HASH256; 
 
 	public static final String argDirPrefix = "--dir=";
 	public static final String argTestnet = "--testnet";

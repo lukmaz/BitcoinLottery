@@ -89,7 +89,7 @@ public class Lottery {
 		ioHandler.showLotteryPhase(LotteryPhases.DEPOSIT_PHASE);
 		boolean testnet = parameters.isTestnet();
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
-		byte[] hash = LotteryUtils.calcHash(secret);
+		byte[] hash = LotteryUtils.calcDoubleHash(secret);
 		ioHandler.showHash(hash); //TODO: save it?
 		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1));
 		TxOutputVerifier txOutputVerifier = new TxOutputVerifier(sk, deposit, testnet);
@@ -132,11 +132,10 @@ public class Lottery {
 		File payTxsFile = memoryStorage.saveTransactions(parameters, payTxs);
 		ioHandler.showCommitmentScheme(commitTx, openTx, payTxs, payTxsFile.getParent());
 		OthersCommitsVerifier othersCommitsVerifier = 
-				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit.subtract(fee), testnet);
+				new InputVerifiers.OthersCommitsVerifier(pks, position, minLength, deposit.subtract(fee), hash, testnet);
 		othersCommitsTxs = ioHandler.askOthersCommits(noPlayers, position, othersCommitsVerifier);
 		memoryStorage.saveTransactions(parameters, othersCommitsTxs);
 		hashes = othersCommitsVerifier.getHashes();
-		hashes.set(position, hash);
 		OthersPaysVerifier othersPaysVerifier = 
 				new InputVerifiers.OthersPaysVerifier(othersCommitsTxs, sk, pks, position, fee, payDepositTimestamp, testnet);
 		List<PayDepositTx> othersPaysTxs = ioHandler.askOthersPayDeposits(noPlayers, position, othersPaysVerifier);

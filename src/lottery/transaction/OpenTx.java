@@ -61,7 +61,7 @@ public class OpenTx extends LotteryTx {
 			if (chunks.size() == 5) {
 				byte[] data = chunks.get(SECRET_POSITION).data;
 				if (hash != null) {
-					if (Arrays.equals(hash, LotteryUtils.calcHash(data))) {
+					if (Arrays.equals(hash, LotteryUtils.calcDoubleHash(data))) {
 						possibleSecrets.add(data);
 						return;
 					}

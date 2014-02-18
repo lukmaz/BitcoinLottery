@@ -350,7 +350,7 @@ public class InputVerifiers {
 			else if (secret.length >= minLength + noPlayers) {
 				throw new WrongInputException("The secret is to long.");
 			}
-			else if (!Arrays.equals(LotteryUtils.calcHash(secret), hashes.get(counter))) {
+			else if (!Arrays.equals(LotteryUtils.calcDoubleHash(secret), hashes.get(counter))) {
 				throw new WrongInputException("The secret does not match the hash.");
 			}
 		}
@@ -392,20 +392,24 @@ public class InputVerifiers {
 		protected int minLength;
 		protected BigInteger value;
 		protected boolean testnet;
+		protected byte[] hash;
 		protected List<byte[]> hashes;
 		protected int counter;
 		protected int noPlayers;
 
-		public OthersCommitsVerifier(List<byte[]> pks, int position, int minLength, BigInteger deposit,
-				boolean testnet) {
+		public OthersCommitsVerifier(List<byte[]> pks, int position, int minLength,
+				BigInteger deposit, byte[] hash, boolean testnet) {
 			this.pks = pks;
 			this.noPlayers = pks.size();
 			this.position = position;
 			this.minLength = minLength;
 			this.value = deposit.divide(BigInteger.valueOf(noPlayers-1));
 			this.testnet = testnet;
+			this.hash = hash;
 			this.hashes = new ArrayList<byte[]>();
 			this.counter = 0;
+			
+			checkPosition();
 		}
 
 		public List<byte[]> getHashes() {
@@ -414,10 +418,6 @@ public class InputVerifiers {
 
 		@Override
 		public CommitTx verify(String input) throws WrongInputException {
-			if (counter == position) {
-				hashes.add(null);
-				counter++;
-			}
 			if (counter >= noPlayers) {
 				throw new WrongInputException("To many Commit transactions.");
 			}
@@ -449,13 +449,31 @@ public class InputVerifiers {
 			if (!Arrays.equals(commitTx.getCommiterAddress(), Utils.sha256hash160(pks.get(counter)))) {
 				throw new WrongInputException("Wrong commiter's public key.");
 			}
+			checkHash(commitTx.getHash());
 			
-			hashes.add(commitTx.getHash());
 			counter++;
-			if (counter == noPlayers - 1 && counter == position) {
-				hashes.add(null);
-			}
+			checkPosition();
 			return commitTx;
+		}
+
+		protected void checkPosition() {
+			if (counter == position) {
+				hashes.add(hash);
+				counter++;
+			}
+		}
+
+		protected void checkHash(byte[] newHash) throws WrongInputException {
+			WrongInputException e = new WrongInputException("Wrong commiter's public key.");
+			if (Arrays.equals(hash, newHash)) {
+				throw e;
+			}
+			for (byte[] prevHash : hashes) {
+				if (Arrays.equals(prevHash, newHash)) {
+					throw e;
+				}
+			}
+			hashes.add(newHash);
 		}
 
 	}
