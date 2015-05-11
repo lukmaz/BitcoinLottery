@@ -24,10 +24,9 @@ public class ClaimTx extends LotteryTx {
 	
 	protected void completeInScript(ComputeTx computeTx, List<byte[]> secrets, 
 										ECKey sk, Address address)  throws VerificationException {
-		TransactionSignature signature = sign(0, sk);
 		ScriptBuilder scriptBuilder = new ScriptBuilder();
-		scriptBuilder.data(signature.encodeToBitcoin())
-					 .data(sk.getPubKey());
+		scriptBuilder.data(sign(0,sk).encodeToBitcoin())
+				      	 .data(sk.getPubKey());
 		for (byte[] secret : secrets) {
 			scriptBuilder.data(secret);
 		}

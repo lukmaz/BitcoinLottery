@@ -56,6 +56,7 @@ public class ComputeTx extends LotteryTx {
 	}
 
 	public ComputeTx(byte[] rawTx, List<PutMoneyTx> inputs, boolean testnet) throws VerificationException {
+    this.testnet = testnet;
 		NetworkParameters params = getNetworkParameters(testnet);
 		tx = new Transaction(params, rawTx);
 		validateIsCompute(inputs);
@@ -117,7 +118,6 @@ public class ComputeTx extends LotteryTx {
 	protected Script calculateOutScript() {
 		ScriptBuilder sb = new ScriptBuilder();
 		byte[] dataMinLength = {(byte) minLength};
-		byte[] dataNoPlayers = {(byte) noPlayers};
 		
 		sb.smallNum(0);
 		for (int k = noPlayers-1; k >= 0; --k) {
@@ -127,7 +127,7 @@ public class ComputeTx extends LotteryTx {
 			  .op(ScriptOpCodes.OP_SUB)
 			  .op(ScriptOpCodes.OP_TUCK)
 			  .smallNum(0)
-			  .data(dataNoPlayers)
+			  .smallNum(noPlayers)
 			  .op(ScriptOpCodes.OP_WITHIN)
 			  .op(ScriptOpCodes.OP_VERIFY)
 			  .op(BitcoinLotterySettings.hashFunctionOpCode)
@@ -136,10 +136,10 @@ public class ComputeTx extends LotteryTx {
 			  .op(ScriptOpCodes.OP_ADD);
 			if (k < noPlayers-1) {
 				sb.op(ScriptOpCodes.OP_DUP)
-				  .data(dataNoPlayers)
+			    .smallNum(noPlayers)
 				  .op(ScriptOpCodes.OP_GREATERTHANOREQUAL)
 				  .op(ScriptOpCodes.OP_IF)
-				  .data(dataNoPlayers)
+			    .smallNum(noPlayers)
 				  .op(ScriptOpCodes.OP_SUB)
 				  .op(ScriptOpCodes.OP_ENDIF);
 			}
@@ -147,20 +147,20 @@ public class ComputeTx extends LotteryTx {
 		for (int k = noPlayers-1; k >= 0; --k) {
 			sb.data(Utils.sha256hash160(pks.get(k)));
 		}
-		sb.data(dataNoPlayers);
-		sb.op(ScriptOpCodes.OP_ROLL);
-		sb.op(ScriptOpCodes.OP_ROLL);
-		sb.data(dataNoPlayers);
-		sb.op(ScriptOpCodes.OP_ROLL);
-		sb.op(ScriptOpCodes.OP_DUP);
-		sb.op(ScriptOpCodes.OP_HASH160);
-		sb.op(ScriptOpCodes.OP_ROT);
-		sb.op(ScriptOpCodes.OP_EQUALVERIFY);
-		sb.data(dataNoPlayers);
-		sb.op(ScriptOpCodes.OP_ROLL);
-		sb.op(ScriptOpCodes.OP_SWAP);
-		sb.op(ScriptOpCodes.OP_CHECKSIG);
-		return sb.build();
+		sb.smallNum(noPlayers)
+		  .op(ScriptOpCodes.OP_ROLL)
+  		.op(ScriptOpCodes.OP_ROLL)
+			.smallNum(noPlayers)
+		  .op(ScriptOpCodes.OP_ROLL)
+  		.op(ScriptOpCodes.OP_DUP)
+	  	.op(ScriptOpCodes.OP_HASH160)
+		  .op(ScriptOpCodes.OP_ROT)
+  		.op(ScriptOpCodes.OP_EQUALVERIFY)
+			.smallNum(noPlayers)
+		  .op(ScriptOpCodes.OP_ROLL)
+  		.op(ScriptOpCodes.OP_SWAP)
+	  	.op(ScriptOpCodes.OP_CHECKSIG);
+    return sb.build();
 	}
 
 	public byte[] addSignature(int k, byte[] signature) throws VerificationException {

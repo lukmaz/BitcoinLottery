@@ -43,10 +43,11 @@ public class OpenTx extends LotteryTx {
 		}
 		tx.addOutput(value.subtract(fee), address);
 		for (int k = 0; k < noPlayers; ++k) {
+			byte[] sig = sign(k, sk).encodeToBitcoin();
 			tx.getInput(k).setScriptSig(new ScriptBuilder()
-												.data(sign(k, sk).encodeToBitcoin())
+												.data(sig)
 												.data(sk.getPubKey())
-												.data(emptyData)
+												.data(sig) // wrong signature in a good format
 												.data(pks.get(k))
 												.data(secret)
 												.build());

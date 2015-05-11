@@ -48,12 +48,13 @@ public class PayDepositTx extends LotteryTx {
 	
 	protected void computeInScript(ECKey sk) throws ScriptException {
 		List<ScriptChunk> chunks = tx.getInput(0).getScriptSig().getChunks();
+	  byte[] sig = sign(0, sk).encodeToBitcoin();
 		ScriptBuilder sb = new ScriptBuilder()
 									.data(chunks.get(0).data)
 									.data(chunks.get(1).data)
-									.data(sign(0, sk).encodeToBitcoin())
+									.data(sig)
 									.data(sk.getPubKey())
-									.data(emptyData);
+									.data(sig);  // dummy secret
 		tx.getInput(0).setScriptSig(sb.build());
 	}
 

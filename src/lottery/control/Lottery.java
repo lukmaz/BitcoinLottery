@@ -91,15 +91,15 @@ public class Lottery {
 		NetworkParameters params = LotteryTx.getNetworkParameters(testnet);
 		byte[] hash = LotteryUtils.calcDoubleHash(secret);
 		ioHandler.showHash(hash); //TODO: save it?
-		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1));
+		BigInteger deposit = stake.multiply(BigInteger.valueOf(noPlayers-1))
+		                          .multiply(BigInteger.valueOf(noPlayers));
 		TxOutputVerifier txOutputVerifier = new TxOutputVerifier(sk, deposit, testnet);
 		TransactionOutput txOutput = ioHandler.askOutput(deposit, txOutputVerifier);
 		//TODO notify output number (txOutputVerifier.getOutNr())
 		CommitTx commitTx = null;
 		try {
 			commitTx = new CommitTx(txOutput, sk, pks, position, hash, minLength, fee, testnet);
-		} catch (VerificationException e) {
-			// TODO Auto-generated catch block
+		} catch (VerificationException e) { // TODO cannot happen
 			e.printStackTrace();
 		}
 		memoryStorage.saveTransaction(parameters, commitTx);

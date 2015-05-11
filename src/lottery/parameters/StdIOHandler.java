@@ -141,9 +141,9 @@ public class StdIOHandler extends IOHandler {
 	}
 
 	@Override
-	public TransactionOutput askOutput(BigInteger stake, GenericVerifier<TransactionOutput> verifier) throws IOException {
+	public TransactionOutput askOutput(BigInteger value, GenericVerifier<TransactionOutput> verifier) throws IOException {
 		writeln("Enter a raw transaction to use as an input.");
-		writeln("Its output should have value exactly " + Utils.bitcoinValueToFriendlyString(stake) + " BTC.");
+		writeln("Its output should have value exactly " + Utils.bitcoinValueToFriendlyString(value) + " BTC.");
 		return readObject(verifier, null); //TODO: print output number (or ask for it if more than one suits)
 	}
 	
@@ -216,6 +216,7 @@ public class StdIOHandler extends IOHandler {
 	public List<PutMoneyTx> askPutMoney(int noPlayers, BigInteger stake,
 			GenericVerifier<PutMoneyTx> verifier) throws IOException {
 		writeln("Enter the PutMoney transactions from players:");
+		writeln("Their output should have value exactly " + Utils.bitcoinValueToFriendlyString(stake) + " BTC.");
 		List<PutMoneyTx> putMoneyTxs = new ArrayList<PutMoneyTx>();
 		for (int k = 0; k < noPlayers; ++k) {
 			writeln("   from player " + (k+1));
@@ -331,7 +332,7 @@ public class StdIOHandler extends IOHandler {
 	public void showWinner(int winner, Address address) {
 		write("The winner is the player number " + (winner+1) + " "); 
 		writeln("(the one with address " + address + ")");		
-		writeln("    (numerating starts with 1).");		
+		writeln("    (numeration starts with 1).");
 		writeln("If you are not the winner press Ctrl+c to exit.");
 	}
 
