@@ -155,11 +155,12 @@ public class ComputeTx extends LotteryTx {
   		.op(ScriptOpCodes.OP_DUP)
 	  	.op(ScriptOpCodes.OP_HASH160)
 		  .op(ScriptOpCodes.OP_ROT)
-  		.op(ScriptOpCodes.OP_EQUALVERIFY)
-			.smallNum(noPlayers)
-		  .op(ScriptOpCodes.OP_ROLL)
-  		.op(ScriptOpCodes.OP_SWAP)
-	  	.op(ScriptOpCodes.OP_CHECKSIG);
+  		.op(ScriptOpCodes.OP_EQUALVERIFY);
+		for (int k = 1; k <= noPlayers-1; ++k) {
+			sb.op(ScriptOpCodes.OP_SWAP)
+			  .op(ScriptOpCodes.OP_DROP);
+		}
+	  sb.op(ScriptOpCodes.OP_CHECKSIG);
     return sb.build();
 	}
 
